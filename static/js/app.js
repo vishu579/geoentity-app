@@ -9,7 +9,9 @@ new Vue({
         error: null,
         selectedSortKey: '',
         sortAsc: true,
-        sortableKeys: ['id', 'name', 'category', 'parent_id', 'project', 'theme']
+        sortableKeys: ['id', 'name', 'category', 'parent_id', 'project', 'theme'],
+        selectedCategory: '',
+        selectedTheme: ''
     },
     computed: {
         keyLabels() {
@@ -21,6 +23,21 @@ new Vue({
                 project: 'Project',
                 theme: 'Theme'
             };
+        },
+        sortableKeysWithoutCategoryTheme() {
+            return this.sortableKeys.filter(k => k !== 'category' && k !== 'theme');
+        },
+        uniqueCategories() {
+            const cats = this.rawData
+                .map(item => item.category)
+                .filter(c => c != null && c !== '');
+            return [...new Set(cats)].sort();
+        },
+        uniqueThemes() {
+            const ths = this.rawData
+                .map(item => item.theme)
+                .filter(t => t != null && t !== '');
+            return [...new Set(ths)].sort();
         }
     },
     methods: {
@@ -42,20 +59,21 @@ new Vue({
         },
         filterData() {
             const q = this.searchQuery.toLowerCase().trim();
-            if (!q) {
-                this.filteredData = this.rawData.slice();
-            } else {
-                this.filteredData = this.rawData.filter(item => {
-                    return (
-                        (item.name && item.name.toLowerCase().includes(q)) ||
-                        (item.category && item.category.toLowerCase().includes(q)) ||
-                        (item.project && item.project.toLowerCase().includes(q)) ||
-                        (item.theme && item.theme.toLowerCase().includes(q)) ||
-                        (item.id && item.id.toString().includes(q)) ||
-                        (item.parent_id !== null && item.parent_id.toString().includes(q))
-                    );
-                });
-            }
+            this.filteredData = this.rawData.filter(item => {
+                const matchesSearch =
+                    !q ||
+                    (item.name && item.name.toLowerCase().includes(q)) ||
+                    (item.category && item.category.toLowerCase().includes(q)) ||
+                    (item.project && item.project.toLowerCase().includes(q)) ||
+                    (item.theme && item.theme.toLowerCase().includes(q)) ||
+                    (item.id && item.id.toString().includes(q)) ||
+                    (item.parent_id !== null && item.parent_id.toString().includes(q));
+
+                const matchesCategory = !this.selectedCategory || item.category === this.selectedCategory;
+                const matchesTheme = !this.selectedTheme || item.theme === this.selectedTheme;
+
+                return matchesSearch && matchesCategory && matchesTheme;
+            });
 
             if (this.selectedSortKey) {
                 this.sortBy(this.selectedSortKey, false);
