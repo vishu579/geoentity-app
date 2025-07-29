@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Geoentity Source</title>
+
+  <link rel="stylesheet" href="https://vedas.sac.gov.in/vstatic/data_monitoring_system/css/style.css" />
+  <link rel="stylesheet" href="https://vedas.sac.gov.in/vstatic/data_monitoring_system/css/material_symbol.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="static\js\vue.js"></script>
+</head>
+<body>
+  <header class="main-header">
+    <div class="logo-box">
+      <a href="https://vedas.sac.gov.in" target="_blank">
+        <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/vedas_logo.png" alt="VEDAS" />
+      </a>
+    </div>
+    <h1 class="dashboard-title">Geoentity Source Table</h1>
+    <div class="logo-box">
+      <a href="https://www.isro.gov.in/" target="_blank">
+        <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/rightside.png" alt="ISRO" />
+      </a>
+    </div>
+  </header>
+
+  <main id="app" class="main-container">
+    <div class="container">
+      <div class="controls">
+        <label class="label">Search:</label>
+        <input type="text" v-model="searchQuery" @input="filterData" placeholder="Search by Name, Category..." class="input" />
+
+        <label class="label">Sort by:</label>
+        <select v-model="selectedSortKey" @change="handleSortChange" class="custom-select">
+          <option value="">-- Select sort key --</option>
+          <option v-for="key in sortableKeys" :value="key">${ keyLabels[key] }</option>
+        </select>
+
+        <button v-if="selectedSortKey" @click="toggleSortOrder" class="btn sort-btn">
+          Sort: ${ sortAsc ? 'Ascending ↑' : 'Descending ↓' }
+        </button>
+
+        <button class="button">Register</button>
+      </div>
+      <section class="data-table">
+        <table>
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Theme ID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Parent ID</th>
+              <th>Project</th>
+              <th>Theme</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, index) in filteredData" :key="item.id">
+              <td>${ index + 1 }</td>
+              <td>${ item.id }</td>
+              <td>${ item.name }</td>
+              <td>${ item.category }</td>
+              <td>${ item.parent_id ?? '-' }</td>
+              <td>${ item.project }</td>
+              <td>${ item.theme ?? '-' }</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p v-if="loading" class="status-text">Loading data...</p>
+      <p v-if="error" class="status-text error-text">[[ error ]]</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    © 2025 VEDAS, SAC, ISRO, Government of India | All Rights Reserved
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
