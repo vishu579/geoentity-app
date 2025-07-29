@@ -29,31 +29,38 @@
   <main id="app" class="main-container">
     <div class="container">
       <div class="controls">
-        <label class="label">Search:</label>
-        <input type="text" v-model="searchQuery" @input="filterData" placeholder="Search by Name, Category..."
-          class="input" />
+        <div>
+          <label class="label">Search:</label>
+          <input type="text" v-model="searchQuery" @input="filterData" placeholder="Search by Name, Category..."
+            class="input" />
+        </div>
 
-        <label class="label">Sort by:</label>
-        <select v-model="selectedSortKey" @change="handleSortChange" class="custom-select">
-          <option value="">-- Select sort key --</option>
-          <option v-for="key in sortableKeysWithoutCategoryTheme" :value="key">${ keyLabels[key] }</option>
-        </select>
+        <div>
+          <label class="label">Sort by:</label>
+          <select v-model="selectedSortKey" @change="handleSortChange" class="custom-select">
+            <option value="">-- Select sort key --</option>
+            <option v-for="key in sortableKeysWithoutCategoryTheme" :value="key">${ keyLabels[key] }</option>
+          </select>
+          <!-- <button v-if="selectedSortKey" @click="toggleSortOrder" class="btn sort-btn">
+            Sort: ${ sortAsc ? 'Ascending ↑' : 'Descending ↓' }
+          </button> -->
+        </div>
 
-        <button v-if="selectedSortKey" @click="toggleSortOrder" class="btn sort-btn">
-          Sort: ${ sortAsc ? 'Ascending ↑' : 'Descending ↓' }
-        </button>
+        <div>
+          <label class="label" style="margin-left: 1rem;">Category:</label>
+          <select v-model="selectedCategory" @change="filterData" class="custom-select">
+            <option value="">All Categories</option>
+            <option v-for="cat in uniqueCategories" :value="cat">${ cat }</option>
+          </select>
+        </div>
 
-        <label class="label" style="margin-left: 1rem;">Category:</label>
-        <select v-model="selectedCategory" @change="filterData" class="custom-select">
-          <option value="">All Categories</option>
-          <option v-for="cat in uniqueCategories" :value="cat">${ cat }</option>
-        </select>
-
-        <label class="label" style="margin-left: 1rem;">Theme:</label>
-        <select v-model="selectedTheme" @change="filterData" class="custom-select">
-          <option value="">All Themes</option>
-          <option v-for="th in uniqueThemes" :value="th">${ th }</option>
-        </select>
+        <div>
+          <label class="label" style="margin-left: 1rem;">Theme:</label>
+          <select v-model="selectedTheme" @change="filterData" class="custom-select">
+            <option value="">All Themes</option>
+            <option v-for="th in uniqueThemes" :value="th">${ th }</option>
+          </select>
+        </div>
 
         <button class="button">Register</button>
       </div>
