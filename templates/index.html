@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Geoentity Source</title>
 
-  <link rel="stylesheet" href="https://vedas.sac.gov.in/vstatic/data_monitoring_system/css/style.css" />
-  <link rel="stylesheet" href="https://vedas.sac.gov.in/vstatic/data_monitoring_system/css/material_symbol.css">
+  <link rel="stylesheet" href="static\css\style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="static\js\vue.js"></script>
 </head>
+
 <body>
   <header class="main-header">
     <div class="logo-box">
@@ -29,17 +30,30 @@
     <div class="container">
       <div class="controls">
         <label class="label">Search:</label>
-        <input type="text" v-model="searchQuery" @input="filterData" placeholder="Search by Name, Category..." class="input" />
+        <input type="text" v-model="searchQuery" @input="filterData" placeholder="Search by Name, Category..."
+          class="input" />
 
         <label class="label">Sort by:</label>
         <select v-model="selectedSortKey" @change="handleSortChange" class="custom-select">
           <option value="">-- Select sort key --</option>
-          <option v-for="key in sortableKeys" :value="key">${ keyLabels[key] }</option>
+          <option v-for="key in sortableKeysWithoutCategoryTheme" :value="key">${ keyLabels[key] }</option>
         </select>
 
         <button v-if="selectedSortKey" @click="toggleSortOrder" class="btn sort-btn">
           Sort: ${ sortAsc ? 'Ascending ↑' : 'Descending ↓' }
         </button>
+
+        <label class="label" style="margin-left: 1rem;">Category:</label>
+        <select v-model="selectedCategory" @change="filterData" class="custom-select">
+          <option value="">All Categories</option>
+          <option v-for="cat in uniqueCategories" :value="cat">${ cat }</option>
+        </select>
+
+        <label class="label" style="margin-left: 1rem;">Theme:</label>
+        <select v-model="selectedTheme" @change="filterData" class="custom-select">
+          <option value="">All Themes</option>
+          <option v-for="th in uniqueThemes" :value="th">${ th }</option>
+        </select>
 
         <button class="button">Register</button>
       </div>
@@ -81,4 +95,5 @@
 
   <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </body>
+
 </html>
