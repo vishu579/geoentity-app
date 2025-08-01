@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Configuration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo-box">
+            <a href="https://vedas.sac.gov.in" target="_blank">
+                <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/vedas_logo.png" alt="VEDAS" />
+            </a>
+        </div>
+        <h1 class="dashboard-title">Configured Geoentities</h1>
+        <div class="logo-box">
+            <a href="https://www.isro.gov.in/" target="_blank">
+                <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/rightside.png" alt="ISRO" />
+            </a>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="container">
+            <h2>Current Configuration:</h2>
+            <!-- <pre>{{ config_data }}</pre> -->
+
+            <a href="{{ url_for('register') }}" class="button">Register</a>
+        </div>
+    </main>
+    <footer class="footer">
+        © 2025 VEDAS, SAC, ISRO, Government of India | All Rights Reserved
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+
+</html>
