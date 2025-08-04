@@ -3,8 +3,12 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configuration</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    <link rel="stylesheet" href="static\css\style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="static\js\vue.js"></script>
 </head>
 
 <body>
@@ -22,12 +26,77 @@
         </div>
     </header>
 
-    <main class="main-container">
+    <main id="app" class="main-container">
         <div class="container">
-            <h2>Current Configuration:</h2>
-            <!-- <pre>{{ config_data }}</pre> -->
+            <div class="controls">
+                <h2>Current Configuration</h2>
+                <a href="{{ url_for('register') }}" class="button">Register New Entity</a>
+            </div>
+            {% for key, value in config.items() %}
+            {% if value is mapping %}
+            <div class="geoentity-card">
+                <h2 class="geoentity-title">{{ loop.index }}. {{ key }}</h2>
 
-            <a href="{{ url_for('register') }}" class="button">Register</a>
+                <section class="geoentity-section">
+                    <h3>Geoentity Source</h3>
+                    <ul class="geoentity-list">
+                        <li><strong>Name:</strong> {{ value.geoentity_source.name }}</li>
+                        <li><strong>Project:</strong> {{ value.geoentity_source.project }}</li>
+                        <li><strong>Provider:</strong> {{ value.geoentity_source.provider }}</li>
+                        <li><strong>Publish Date:</strong> {{ value.geoentity_source.publish_date_yyyymmdd }}</li>
+                        <li><strong>Category:</strong> {{ value.geoentity_source.category }}</li>
+                        <li><strong>Reprocess Flag:</strong> {{ value.geoentity_source.reprocess_flag }}</li>
+                        <li><strong>Remark Info:</strong> {{ value.geoentity_source.remark.info }}</li>
+                    </ul>
+                </section>
+
+                <section class="geoentity-section">
+                    <h3>Geoentity Config</h3>
+                    <ul class="geoentity-list">
+                        <li><strong>Remark Info:</strong> {{ value.geoentity_config.remark.info }}</li>
+                        <li><strong>Notes:</strong>
+                            <ul class="nested-list">
+                                {% for note in value.geoentity_config.remark.note %}
+                                <li>{{ note }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="geoentity-section">
+                    <h3>GeoJSON File Config</h3>
+                    <ul class="geoentity-list">
+                        <li><strong>File Path:</strong> {{ value.geoentity_config.geoJSON_file_config.file_path }}</li>
+                        <li><strong>Parent Type:</strong> {{ value.geoentity_config.geoJSON_file_config.parent_type }}
+                        </li>
+                        <li><strong>Parent Geoentity Source ID:</strong> {{
+                            value.geoentity_config.geoJSON_file_config.parent_geoentity_source_id }}</li>
+                        <li><strong>Prefix Identifier:</strong> {{
+                            value.geoentity_config.geoJSON_file_config.prefix_identifier }}</li>
+                        <li><strong>Aux Attributes:</strong>
+                            <ul class="nested-list">
+                                {% for attr in value.geoentity_config.geoJSON_file_config.geoJSON_aux_attributes %}
+                                <li>{{ attr }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        <li><strong>GeoJSON Info Attribute:</strong>
+                            <ul class="nested-list">
+                                <li><strong>Name:</strong> {{
+                                    value.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.name }}</li>
+                                <li><strong>Feature ID:</strong> {{
+                                    value.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.feature_ID }}</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+            {% endif %}
+            {% endfor %}
+
+
+
         </div>
     </main>
     <footer class="footer">

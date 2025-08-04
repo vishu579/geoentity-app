@@ -309,3 +309,55 @@ tbody tr:hover {
   gap: 50px;
   flex-wrap: wrap;
 }
+
+.geoentity-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  margin-bottom: 24px;
+  transition: transform 0.2s ease;
+}
+
+.geoentity-card:hover {
+  transform: scale(1.01);
+}
+
+.geoentity-title {
+  margin-top: 0;
+  font-size: 1.4rem;
+  border-bottom: 2px solid #007BFF;
+  padding-bottom: 5px;
+  color: #333;
+}
+
+.geoentity-section {
+  margin-top: 20px;
+}
+
+.geoentity-section h3 {
+  color: #007BFF;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.geoentity-list,
+.nested-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.geoentity-list li,
+.nested-list li {
+  background-color: #f9f9f9;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-left: 4px solid #007BFF;
+  border-radius: 4px;
+}
+
+.nested-list {
+  margin-top: 6px;
+  margin-left: 20px;
+}
