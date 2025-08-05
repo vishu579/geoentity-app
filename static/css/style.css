@@ -410,3 +410,12 @@ tbody tr:hover {
 .geoentity-title.active::before {
   transform: translateY(-50%) rotate(90deg);
 }
+
+.form-css {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  flex-wrap: nowrap;
+}
