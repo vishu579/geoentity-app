@@ -315,7 +315,7 @@ tbody tr:hover {
   border-radius: 8px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
   padding: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   transition: transform 0.2s ease;
 }
 
@@ -360,4 +360,53 @@ tbody tr:hover {
 .nested-list {
   margin-top: 6px;
   margin-left: 20px;
+}
+
+/* Wrap the collapsible content */
+.geoentity-content {
+  display: none;
+  /* Hidden by default */
+  margin-top: 10px;
+  padding-left: 15px;
+  border-left: 3px solid #007BFF;
+  /* match your brand blue */
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Show when active */
+.geoentity-content.active {
+  display: block;
+  max-height: 2000px;
+  /* large enough to fit content */
+  opacity: 1;
+}
+
+/* Clickable title cursor and icon */
+.geoentity-title {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-left: 25px;
+  /* space for arrow */
+}
+
+/* Arrow icon before the title */
+.geoentity-title::before {
+  content: "▶";
+  /* right-pointing arrow */
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #007BFF;
+  transition: transform 0.3s ease;
+  font-size: 1rem;
+}
+
+/* Rotate arrow when active */
+.geoentity-title.active::before {
+  transform: translateY(-50%) rotate(90deg);
 }

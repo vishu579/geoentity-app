@@ -22,10 +22,88 @@
     </header>
 
     <main class="main-container">
-        <div class="container">
-            <form method="POST" enctype="multipart/form-data">
-                <label for="geojson">Upload GeoJSON File:</label>
-                <input type="file" name="geojson" accept=".geojson" required />
+        <div>
+            <form class="controls" method="POST" enctype="multipart/form-data">
+                <h2>Geoentity Source</h2>
+                <div>
+                    <div>
+                        <label>Name:</label>
+                        <input id="name" type="text" name="name" required />
+                    </div>
+                    <div>
+                        <label>Project:</label>
+                        <input id="project" type="text" name="project" required />
+                    </div>
+                    <div>
+                        <label>Provider:</label>
+                        <input id="provider" type="text" name="provider" required />
+                    </div>
+                    <div>
+                        <label>Publish Date (YYYYMMDD):</label>
+                        <input id="publish_date_yyyymmdd" type="text" name="publish_date_yyyymmdd" required />
+                    </div>
+                    <div>
+                        <label>Category:</label>
+                        <input id="category" type="text" name="category" required />
+                    </div>
+                    <div>
+                        <label>Reprocess Flag:</label>
+                        <input id="reprocess_flag" type="text" name="reprocess_flag" />
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Remark Info:</label>
+                        <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <h2>Geoentity Config</h2>
+                <div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Remark Info:</label>
+                        <textarea id="config_remark_info" name="config_remark_info" rows="2"></textarea>
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Notes (one per line):</label>
+                        <textarea id="config_notes" name="config_notes" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <h2>GeoJSON File Config</h2>
+                <div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Upload GeoJSON File:</label>
+                        <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" required />
+                    </div>
+                    <div>
+                        <label>Parent Type:</label>
+                        <input id="parent_type" type="text" name="parent_type" />
+                    </div>
+                    <div>
+                        <label>Parent Geoentity Source ID:</label>
+                        <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" />
+                    </div>
+                    <div>
+                        <label>Prefix Identifier:</label>
+                        <input id="prefix_identifier" type="text" name="prefix_identifier" />
+                    </div>
+                    <div>
+                        <label>GeoJSON Aux Attributes (comma-separated):</label>
+                        <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" />
+                    </div>
+                </div>
+
+                <h3>GeoJSON Info Attribute</h3>
+                <div>
+                    <div>
+                        <label>Info Name:</label>
+                        <input id="geojson_info_name" type="text" name="geojson_info_name" />
+                    </div>
+                    <div>
+                        <label>Feature ID:</label>
+                        <input id="geojson_feature_id" type="text" name="geojson_feature_id" />
+                    </div>
+                </div>
+
                 <button type="submit" class="button">Save</button>
             </form>
         </div>
