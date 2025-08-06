@@ -36,7 +36,14 @@
 
             <!-- Geoentity Source Section -->
             <div class="form-section">
+                <label for="key">Key:</label>
+                <input id="key" type="text" name="key" required />
+
+                <hr class="form-divider" />
                 <div class="section-heading" style="grid-row: span 7;">Geoentity Source</div>
+
+                <label for="source_remark_info">Remark Info:</label>
+                <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
 
                 <label for="name">Name:</label>
                 <input id="name" type="text" name="name" required />
@@ -53,6 +60,9 @@
                 <label for="category">Category:</label>
                 <input id="category" type="text" name="category" required />
 
+                <label for="aux-data">Aux data:</label>
+                <input id="aux-data" type="text" name="aux-data" />
+
                 <label for="reprocess_flag">Reprocess Flag:</label>
                 <div id="reprocess_flag" class="radio-buttons">
                     <label style="display: flex; align-items: center; gap: 0.3rem;">
@@ -62,9 +72,6 @@
                         <input type="radio" name="reprocess_flag" value="False" /> False
                     </label>
                 </div>
-
-                <label for="source_remark_info">Remark Info:</label>
-                <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
             </div>
 
             <hr class="form-divider" /> <!-- Geoentity Config Section -->
