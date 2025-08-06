@@ -2,11 +2,21 @@
 <html>
 
 <head>
-    <title>Register GeoJSON</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Page</title>
+
+    <link rel="stylesheet" href="static\css\style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="static\js\vue.js"></script>
 </head>
 
 <body>
+    <div>
+
+    </div>
     <header class="main-header">
         <div class="logo-box">
             <a href="https://vedas.sac.gov.in" target="_blank">
@@ -21,105 +31,101 @@
         </div>
     </header>
 
-    <main class="main-container">
-        <div>
-            <form class="form-css" method="POST" enctype="multipart/form-data">
-                <div>
-                    <h2>Geoentity Source</h2>
-                    <div>
-                        <div>
-                            <label>Name:</label>
-                            <input id="name" type="text" name="name" required />
-                        </div>
-                        <div>
-                            <label>Project:</label>
-                            <input id="project" type="text" name="project" required />
-                        </div>
-                        <div>
-                            <label>Provider:</label>
-                            <input id="provider" type="text" name="provider" required />
-                        </div>
-                        <div>
-                            <label>Publish Date (YYYYMMDD):</label>
-                            <input id="publish_date_yyyymmdd" type="text" name="publish_date_yyyymmdd" required />
-                        </div>
-                        <div>
-                            <label>Category:</label>
-                            <input id="category" type="text" name="category" required />
-                        </div>
-                        <div>
-                            <label>Reprocess Flag:</label>
-                            <input id="reprocess_flag" type="text" name="reprocess_flag" />
-                        </div>
-                        <div style="grid-column: 1 / -1;">
-                            <label>Remark Info:</label>
-                            <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
-                        </div>
-                    </div>
+    <main id="app" class="main-div">
+        <form class="form-css" method="POST" action="/register" enctype="multipart/form-data">
+
+            <!-- Geoentity Source Section -->
+            <div class="form-section">
+                <div class="section-heading" style="grid-row: span 7;">Geoentity Source</div>
+
+                <label for="name">Name:</label>
+                <input id="name" type="text" name="name" required />
+
+                <label for="project">Project:</label>
+                <input id="project" type="text" name="project" required />
+
+                <label for="provider">Provider:</label>
+                <input id="provider" type="text" name="provider" required />
+
+                <label for="publish_date_yyyymmdd">Publish Date:</label>
+                <input id="publish_date_yyyymmdd" type="text" name="publish_date_yyyymmdd" placeholder="YYYYMMDD" />
+
+                <label for="category">Category:</label>
+                <input id="category" type="text" name="category" required />
+
+                <label for="reprocess_flag">Reprocess Flag:</label>
+                <div id="reprocess_flag" class="radio-buttons">
+                    <label style="display: flex; align-items: center; gap: 0.3rem;">
+                        <input type="radio" name="reprocess_flag" value="True" /> True
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.3rem;">
+                        <input type="radio" name="reprocess_flag" value="False" /> False
+                    </label>
                 </div>
 
-                <div>
-                    <h2>Geoentity Config</h2>
-                    <div>
-                        <div style="grid-column: 1 / -1;">
-                            <label>Remark Info:</label>
-                            <textarea id="config_remark_info" name="config_remark_info" rows="2"></textarea>
-                        </div>
-                        <div style="grid-column: 1 / -1;">
-                            <label>Notes (one per line):</label>
-                            <textarea id="config_notes" name="config_notes" rows="3"></textarea>
-                        </div>
-                    </div>
-                </div>
+                <label for="source_remark_info">Remark Info:</label>
+                <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
+            </div>
 
-                <div>
-                    <h2>GeoJSON File Config</h2>
-                    <div>
-                        <div style="grid-column: 1 / -1;">
-                            <label>Upload GeoJSON File:</label>
-                            <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" required />
-                        </div>
-                        <div>
-                            <label>Parent Type:</label>
-                            <input id="parent_type" type="text" name="parent_type" />
-                        </div>
-                        <div>
-                            <label>Parent Geoentity Source ID:</label>
-                            <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" />
-                        </div>
-                        <div>
-                            <label>Prefix Identifier:</label>
-                            <input id="prefix_identifier" type="text" name="prefix_identifier" />
-                        </div>
-                        <div>
-                            <label>GeoJSON Aux Attributes (comma-separated):</label>
-                            <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" />
-                        </div>
-                    </div>
-                </div>
+            <hr class="form-divider" /> <!-- Geoentity Config Section -->
+            <div class="form-section">
+                <div class="section-heading" style="grid-row: span 2;">Geoentity Config</div>
 
-                <div>
-                    <h3>GeoJSON Info Attribute</h3>
-                    <div>
-                        <div>
-                            <label>Info Name:</label>
-                            <input id="geojson_info_name" type="text" name="geojson_info_name" />
-                        </div>
-                        <div>
-                            <label>Feature ID:</label>
-                            <input id="geojson_feature_id" type="text" name="geojson_feature_id" />
-                        </div>
-                    </div>
-                </div>
+                <label for="config_remark_info">Remark Info:</label>
+                <textarea id="config_remark_info" name="config_remark_info" rows="2"></textarea>
 
+                <label for="config_notes">Notes (one per line):</label>
+                <textarea id="config_notes" name="config_notes" rows="3"></textarea>
+            </div>
+
+            <hr class="form-divider" />
+            <!-- GeoJSON File Config Section -->
+            <div class="form-section">
+                <div class="section-heading" style="grid-row: span 5;">GeoJSON File Config</div>
+
+                <label for="geojson_file">Upload GeoJSON File:</label>
+                <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" required />
+
+                <label for="parent_type">Parent Type:</label>
+                <input id="parent_type" type="text" name="parent_type" />
+
+                <label for="parent_geoentity_source_id">Parent Geoentity Source ID:</label>
+                <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" />
+
+                <label for="prefix_identifier">Prefix Identifier:</label>
+                <input id="prefix_identifier" type="text" name="prefix_identifier" />
+
+                <label for="geojson_aux_attributes">GeoJSON Aux Attributes (comma-separated):</label>
+                <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" />
+            </div>
+
+            <hr class="form-divider" />
+            <!-- GeoJSON Info Attribute Section -->
+            <div class="form-section">
+                <div class="section-heading" style="grid-row: span 2;">GeoJSON Info Attribute</div>
+
+                <label for="geojson_info_name">Info Name:</label>
+                <input id="geojson_info_name" type="text" name="geojson_info_name" />
+
+                <label for="geojson_feature_id">Feature ID:</label>
+                <input id="geojson_feature_id" type="text" name="geojson_feature_id" />
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-button-container">
                 <button type="submit" class="button">Save</button>
-            </form>
-        </div>
+            </div>
+        </form>
+        {% if message %}
+        <p class="success">{{ message }}</p>
+        {% endif %}
     </main>
 
     <footer class="footer">
         © 2025 VEDAS, SAC, ISRO, Government of India | All Rights Reserved
     </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </body>
 
 </html>
