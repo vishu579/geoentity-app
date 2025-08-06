@@ -55,19 +55,19 @@ def register():
                 return render_template('register.html', message='Invalid file format. Only .geojson allowed.')
 
             # Extract form fields
-            name = request.form.get("name")
-            key_name = name.lower().replace(" ", "_")  # use as JSON key
+            key = request.form.get("key")
+            key_name = key.lower().replace(" ", "_")  # use as JSON key
 
             geoentity_source = {
                 "remark": {
                     "info": request.form.get("source_remark_info", "").strip()
                 },
-                "name": name,
+                "name": request.form.get("name"),
                 "project": request.form.get("project"),
                 "provider": request.form.get("provider"),
                 "publish_date_yyyymmdd": request.form.get("publish_date_yyyymmdd"),
                 "category": request.form.get("category"),
-                "aux_data": "",
+                "aux_data": request.form.get("aux-data") == "",
                 "reprocess_flag": request.form.get("reprocess_flag") == "True"
             }
 
