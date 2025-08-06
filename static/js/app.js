@@ -114,5 +114,11 @@ new Vue({
     },
     mounted() {
         this.fetchData();
+        flatpickr("#publish_date_yyyymmdd", {
+            dateFormat: "Ymd",     // This controls the visible format: YYYYMMDD
+            onChange: (selectedDates, dateStr) => {
+                this.publishDate = dateStr;  // Update Vue model when date is picked
+            }
+        });
     }
 });  
