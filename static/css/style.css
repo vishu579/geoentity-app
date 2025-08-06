@@ -429,9 +429,9 @@ tbody tr:hover {
   grid-template-columns: 250px 200px 1fr;
   grid-gap: 10px 20px;
   /* vertical gap 10px, horizontal gap 20px */
-  align-items: start;
+  align-items: center;
   max-width: 1000px;
-  margin: 50px;
+  margin-bottom: 50px;
 }
 
 .form-section {
