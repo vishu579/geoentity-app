@@ -48,6 +48,7 @@
                             <li><strong>Provider:</strong> {{ value.geoentity_source.provider }}</li>
                             <li><strong>Publish Date:</strong> {{ value.geoentity_source.publish_date_yyyymmdd }}</li>
                             <li><strong>Category:</strong> {{ value.geoentity_source.category }}</li>
+                            <li><strong>Aux Data:</strong> {{ value.geoentity_source.aux_data }}</li>
                             <li><strong>Reprocess Flag:</strong> {{ value.geoentity_source.reprocess_flag }}</li>
                             <li><strong>Remark Info:</strong> {{ value.geoentity_source.remark.info }}</li>
                         </ul>
@@ -100,8 +101,6 @@
             </div>
             {% endif %}
             {% endfor %}
-
-
 
         </div>
     </main>
