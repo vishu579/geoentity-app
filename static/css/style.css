@@ -449,14 +449,14 @@ tbody tr:hover {
   padding-top: 6px;
 }
 
-label {
+.form-section label {
   grid-column: 2 / 3;
   padding-top: 6px;
   text-align: left;
   padding-right: 10px;
 }
 
-input,
+.form-section input,
 textarea {
   grid-column: 3 / 4;
   width: 100%;
