@@ -67,7 +67,7 @@ def register():
                 "provider": request.form.get("provider"),
                 "publish_date_yyyymmdd": request.form.get("publish_date_yyyymmdd"),
                 "category": request.form.get("category"),
-                "aux_data": request.form.get("aux-data") == "",
+                "aux_data": request.form.get("aux-data"),
                 "reprocess_flag": request.form.get("reprocess_flag") == "True"
             }
 
@@ -113,11 +113,7 @@ def register():
                 config_data["config"] = {}
 
             # Append to keys_to_process list if not already present
-            if "geoentity_keys_to_process" not in config_data["config"]:
-                config_data["config"]["geoentity_keys_to_process"] = []
-
-            if key_name not in config_data["config"]["geoentity_keys_to_process"]:
-                config_data["config"]["geoentity_keys_to_process"].append(key_name)
+            config_data["config"]["geoentity_keys_to_process"] = [key_name]
 
             # Insert new geoentity block
             config_data["config"][key_name] = {
