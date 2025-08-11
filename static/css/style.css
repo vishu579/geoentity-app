@@ -329,6 +329,12 @@ tbody tr:hover {
   border-bottom: 2px solid #007BFF;
   padding-bottom: 5px;
   color: #333;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-left: 25px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .geoentity-section {
@@ -382,15 +388,6 @@ tbody tr:hover {
   max-height: 2000px;
   /* large enough to fit content */
   opacity: 1;
-}
-
-/* Clickable title cursor and icon */
-.geoentity-title {
-  cursor: pointer;
-  user-select: none;
-  position: relative;
-  padding-left: 25px;
-  /* space for arrow */
 }
 
 /* Arrow icon before the title */
