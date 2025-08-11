@@ -36,7 +36,12 @@
             {% if value is mapping %}
             <div class="geoentity-card">
                 <!-- Make the title clickable and add class for JS toggle -->
-                <h2 class="geoentity-title">{{ loop.index }}. {{ key }}</h2>
+                <h2 class="geoentity-title">
+                    {{ loop.index }}. {{ key }}
+                    {% if value.geoentity_source.reprocess_flag %}
+                    <button class="republish-btn" data-key="{{ key }}">Republish</button>
+                    {% endif %}
+                </h2>
 
                 <!-- Wrap the content in a div to toggle -->
                 <div class="geoentity-content">
@@ -113,16 +118,22 @@
         document.addEventListener('DOMContentLoaded', function () {
             const titles = document.querySelectorAll('.geoentity-title');
 
+            // Heading toggle
             titles.forEach(title => {
                 title.addEventListener('click', () => {
-                    // Toggle active class on title (for arrow rotation)
                     title.classList.toggle('active');
-
-                    // Toggle the corresponding content div
                     const content = title.nextElementSibling;
-                    if (content) {
-                        content.classList.toggle('active');
-                    }
+                    if (content) content.classList.toggle('active');
+                });
+            });
+
+            // Republish button
+            document.querySelectorAll('.republish-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation(); // prevent click from toggling the heading
+                    const entityKey = this.dataset.key;
+                    console.log(`Republish clicked for ${entityKey}`);
+                    // TODO: send AJAX request to Flask endpoint to republish
                 });
             });
         });
