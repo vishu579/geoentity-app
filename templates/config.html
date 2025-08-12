@@ -127,13 +127,29 @@
                 });
             });
 
-            // Republish button
             document.querySelectorAll('.republish-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
                     e.stopPropagation(); // prevent click from toggling the heading
                     const entityKey = this.dataset.key;
                     console.log(`Republish clicked for ${entityKey}`);
-                    // TODO: send AJAX request to Flask endpoint to republish
+
+                    fetch('/republish', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `key=${encodeURIComponent(entityKey)}`
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            alert(data.message);
+                            if (data.status === "success") {
+                                // Optional: reload the page so updated config is visible
+                                location.reload();
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error:', err);
+                            alert('Error triggering republish: ' + err);
+                        });
                 });
             });
         });
