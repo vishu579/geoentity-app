@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
+import json
+import geopandas as gpd
+import psycopg2
+import os
 import time
 import datetime
-import os
 import io
-import json
 import paramiko
-import geopandas as gpd
 
 app = Flask(__name__)
 
@@ -25,7 +26,7 @@ geoentity_table = os.getenv("GEOENTITY_TABLE")
 geoentity_source_table = os.getenv("GEOENTITY_SOURCE_TABLE")
 geoentity_source_seq = os.getenv("GEOENTITY_SOURCE_SEQ")
 
-def __printMsg(self,opt,text):
+def __printMsg(opt,text):
     """
     Purpose
     ----------
@@ -50,7 +51,7 @@ def __printMsg(self,opt,text):
         print("Unsupported option "+opt+" for prinitng.")
 
 
-def __get_aux_data(self,attributes_array,row):
+def __get_aux_data(attributes_array,row):
     returnobj={'features':{}}
     for att in attributes_array:
         if 'Level_IV' in att:
@@ -145,8 +146,22 @@ def parse_config(config_path, target_key):
     else:
         return None
 
-def insertion(gdf, geoentity_config):
+def insertion(gdf, geoentity_config, geoentity):
     try:
+        conn=None
+        cur=None
+        try:
+            conn=psycopg2.connect(database=db, user=username, password=password, host=host, port=port)
+            conn.autocommit = True
+            cur= conn.cursor()
+        except:
+            __printMsg("Error"," DB Error, Please check DB Configuration once.")
+            if conn is not None:
+                cur.close()
+                conn.close()
+            __printMsg('Error',"====== GeoEntity ingestion execution is failed due to database connection. ======")
+            sys.exit()  
+
         previous_parent_id=None
 
         # SourceInfo Loading
@@ -169,33 +184,32 @@ def insertion(gdf, geoentity_config):
         if "feature_ID_type" in geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]:
             config_geojsonfile_infoattr_featureid_type = geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID_type"]
 
-        # Handle parent ID logic
-        if (previous_parent_id is not None) and (config_geojsonfile_parent_geoent_source_id == -1):
-            config_geojsonfile_parent_geoent_source_id = previous_parent_id
-            print(f"Info: Previous parent id: {previous_parent_id} is set for geoentity: {geoentity_key or '[unnamed]'}")
-        elif config_geojsonfile_parent_geoent_source_id == -1:
-            print(f"Error: First element and in case of parent insertion failure, parent_id can't be inherited. "
-                  f"Please check parent_geoentity_source_id configuration for geoentity: {geoentity_key or '[unnamed]'}")
+        if (previous_parent_id is not None) and (config_geojsonfile_parent_geoent_source_id==-1):
+            config_geojsonfile_parent_geoent_source_id=previous_parent_id
+            __printMsg("Info"," Previous parent id:"+str(previous_parent_id)+" is set for geoentity: "+geoentity)
+        elif (config_geojsonfile_parent_geoent_source_id==-1):
+            __printMsg("Error","First element and incase of parent insertion failure parent_id can't be inherited. please check parent_geoentity_source_id configuration for geoentity: "+geoentity)
             sys.exit()
+
 
         #None Checking for Parameters
         config_var_list=[source_name,source_publish_date_yyyymmdd,source_project,source_provider,source_category,config_geojsonfile_file_path,config_geojsonfile_parent_type,config_geojsonfile_parent_geoent_source_id,config_geojsonfile_prefix_identifier,config_geojsonfile_infoattr_name,config_geojsonfile_infoattr_featureid]
         if (None in config_var_list) or ("" in config_var_list) :
-            print(f'Error', "=====Configuration error, please see config once for "+geoentity+" ======")
-
+            __printMsg('Error', "=====Configuration error, please see config once for "+geoentity+" ======")
         else:
             config_var_list=None
-        print(f'Info', geoentity+" Parameters(Global and Config) loaded successfully.")
-
+        __printMsg('Info', geoentity+" Parameters(Global and Config) loaded successfully.")
+            
         #Phase 1: Insertion Algo - Source Insertion
-        p("Info", "Phase-1: GeoEntity Source Insertion Started.")
+        __printMsg("Info", "Phase-1: GeoEntity Source Insertion Started.")
         geoentity_source_id=None
         source_insertion_query=None
         if not(source_aux=="NULL" or source_aux=="null" or source_aux=="Null" or source_aux==""):
             source_aux="'"+source_aux+"'"
         else:
             source_aux="NULL"
-            
+        
+
         #-----If duplicate exist then return id for phase-2 execution      
         try:
             cur.execute("SELECT setval('"+geoentity_source_seq+"', max(id)) from "+geoentity_source_table)
@@ -203,18 +217,17 @@ def insertion(gdf, geoentity_config):
                 source_insertion_query="INSERT INTO "+geoentity_source_table+"(name, publish_date, project, provider, category,auxdata,parent_source_id) VALUES ('"+source_name+"', "+str(source_publish_date_yyyymmdd)+", '"+source_project+"', '"+source_provider+"', '"+source_category+"', "+source_aux+","+str(config_geojsonfile_parent_geoent_source_id)+") returning id;"
             else:
                 source_insertion_query="INSERT INTO "+geoentity_source_table+"(name, publish_date, project, provider, category,auxdata) VALUES ('"+source_name+"', "+str(source_publish_date_yyyymmdd)+", '"+source_project+"', '"+source_provider+"', '"+source_category+"', "+source_aux+") returning id;"
-            print(f'Info', source_insertion_query)
+            __printMsg('Info', source_insertion_query)
             cur.execute(source_insertion_query)
             if(cur.rowcount<1): #0 row
-                print(f'Error', "=====(Phase1) Source insertion failed for "+geoentity+" ======")
-
+                __printMsg('Error', "=====(Phase1) Source insertion failed for "+geoentity+" ======")
             else:                
                 geoentity_source_id=cur.fetchone()[0]
-                self.__printMsg('Info', " (Phase1) Source Insertion Completed Successfully.")    
+                __printMsg('Info', " (Phase1) Source Insertion Completed Successfully.")    
         except psycopg2.Error as e:
             
             if "duplicate" in e.pgerror:
-                self.__printMsg('Error', "=====(Phase1) Already Source is existing for "+geoentity+" ======")
+                __printMsg('Error', "=====(Phase1) Already Source is existing for "+geoentity+" ======")
                 if __GeoEntityIngestConfig[geoentity]["geoentity_source"]["reprocess_flag"]:
                     source_id_query="select id from "+geoentity_source_table+" where name='"+source_name+"' and publish_date="+str(source_publish_date_yyyymmdd)+" and project='"+source_project+"' and provider='"+source_provider+"' and category='"+source_category+"'"
                     cur.execute(source_id_query)
@@ -222,37 +235,109 @@ def insertion(gdf, geoentity_config):
                 else:
                     sys.exit()
             else:
-                self.__printMsg('Error', " Phase1 Source Insertion for <"+geoentity+"> has been failed.")
+                __printMsg('Error', " Phase1 Source Insertion for <"+geoentity+"> has been failed.")
                 previous_parent_id=None
-        self.__printMsg("Info", "Phase1: GeoEntity Source Processing Completed Successfully.")
+        __printMsg("Info", "Phase1: GeoEntity Source Processing Completed Successfully.")
+
+
+        #Phase 2: Insertion Algo - GeoEntity Insertion
+        __printMsg("Info", "Phase-2: GeoEntity Insertion Started.")
+        previous_parent_id=geoentity_source_id
+        total_records=0
+        processed_record=0
+        failed_record=0
+        try:
+            gdf.set_crs(epsg=4326, inplace=True, allow_override=True)
+            __printMsg("Info"," Reading of "+geoentity+" geojson file has been completed.")
+            total_records=gdf.shape[0]
+            __printMsg("Info"," In "+geoentity+" total records for processing:"+str(total_records))
+        except:
+            __printMsg("Error", "Phase2 Sorry reading error for "+geoentity+" geojson file, please check the file once.")
+            previous_parent_id=None
         
+        for i,row in gdf.iterrows():
+            # if i<2288559:
+            #    continue   
+
+            geoentity_id=config_geojsonfile_prefix_identifier+__getGeoEntityID(config_geojsonfile_infoattr_featureid,row,config_geojsonfile_infoattr_featureid_type)#--
+            geoentity_name=row[config_geojsonfile_infoattr_name]#--  
+            #print("geoname", geoentity_name, type(geoentity_name))   
+
+            if(geoentity_name and (not isinstance(geoentity_name,float) or not math.isnan(geoentity_name))):
+                #print('i:',str(i),'geoentity_id:',geoentity_id,'geoentity_name:',geoentity_name)
+                geoentity_name=geoentity_name.replace("'","")
+
+            geoentity_geom=__getGeom(row.geometry.wkt)                
+            geoentity_insertion_query=None
+            if (config_geojsonfile_parent_geoent_source_id>0):
+                geoentity_insertion_query ="Insert into "+geoentity_table+"(geoentity_source_id, geoentity_id, name, geom,parent_geoentity_source_id) values ({0},'{1}','{2}',{3},{4})".format(geoentity_source_id,geoentity_id,geoentity_name,geoentity_geom,config_geojsonfile_parent_geoent_source_id)
+                if "geoJSON_aux_attributes" in geoentity_config["geoentity_config"]["geoJSON_file_config"]:
+                    geoentity_insertion_query ="Insert into "+geoentity_table+"(geoentity_source_id, geoentity_id, name, geom,parent_geoentity_source_id,auxdata) values ({0},'{1}','{2}',{3},{4},'{5}')".format(geoentity_source_id,geoentity_id,geoentity_name,geoentity_geom,config_geojsonfile_parent_geoent_source_id,__get_aux_data(geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_aux_attributes"],row))
+            else:
+                geoentity_insertion_query ="Insert into "+geoentity_table+"(geoentity_source_id, geoentity_id, name, geom) values ({0},'{1}','{2}',{3})".format(geoentity_source_id,geoentity_id,geoentity_name,geoentity_geom)                            
+                if "geoJSON_aux_attributes" in geoentity_config["geoentity_config"]["geoJSON_file_config"]:
+                    geoentity_insertion_query ="Insert into "+geoentity_table+"(geoentity_source_id, geoentity_id, name, geom,auxdata) values ({0},'{1}','{2}',{3},'{4}')".format(geoentity_source_id,geoentity_id,geoentity_name,geoentity_geom,__get_aux_data(geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_aux_attributes"],row))                            
+            try:
+                cur.execute(geoentity_insertion_query)
+                if cur.rowcount == 1:
+                    processed_record=processed_record+1        
+                else:
+                    failed_record=failed_record+1
+            except psycopg2.Error as e:
+                if "duplicate" in e.pgerror:
+                    if geoentity_config["geoentity_source"]["reprocess_flag"]:
+                        processed_record=processed_record+1
+                    else:
+                        sys.exit()
+                else:
+                    __printMsg("Error", e.pgerror)
+                    
+        __printMsg("Info"," Phase2 GeoEntity Insertion: Successfully processed records:"+str(processed_record))
+        __printMsg("Info"," Phase2 GeoEntity Insertion: Failed Records:"+str(failed_record)+" \n")
+        __printMsg("Info", "Phase2: GeoEntity Insertion Successfully Completed.")
 
 
+        #Phase3: Spaitail Join 
+        #Phase3: Parent Condition Checking
+        if (config_geojsonfile_parent_geoent_source_id!=0):
+            __printMsg("Info"," Phase3: Spatial join statred.")
+            #geoentity_parent_update_query="UPDATE "+geoentity_table+" SET geoentity_id=CONCAT(parent.geoentity_id,"+geoentity_table+".geoentity_id), parent_id=parent.geoentity_id, parent_name=parent.name FROM (SELECT geoentity_id, name,ST_Buffer(geom::geography,2000)::geometry as geom FROM "+geoentity_table+" where geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+") parent WHERE geoentity_source_id="+str(geoentity_source_id)+" and geoentity.parent_geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+" and ST_Contains(parent.geom,geoentity.geom);"
+            geoentity_parent_update_query="UPDATE "+geoentity_table+" AS child SET geoentity_id = CONCAT(parent.geoentity_id, child.geoentity_id), parent_id = parent.geoentity_id, parent_name = parent.name, parent_geoentity_source_id = parent.geoentity_source_id FROM (SELECT geoentity_source_id, geoentity_id, name, geom FROM  "+geoentity_table+" WHERE geoentity_source_id = "+str(config_geojsonfile_parent_geoent_source_id)+") AS parent WHERE child.geoentity_source_id = "+str(geoentity_source_id)+" AND ST_Intersects(parent.geom, child.geom) AND ST_Contains(parent.geom, ST_Centroid(child.geom))";                
+            #If parent name is set then update query will not be executed
+            update_test_query="SELECT COUNT(*) FROM geoentity where geoentity_source_id = "+str(geoentity_source_id)+" and parent_name is not NULL; "
+            cur.execute(update_test_query)
+            noof_updated_rows=cur.fetchone()[0]
+            if noof_updated_rows<1:
+                command="psql -h "+host+" -U "+username+" -d "+db+" -p "+str(port)+" -c \""+geoentity_parent_update_query+"\""
+                if(__GeoEntityIngestConfig[geoentity]["geoentity_config"]["geoJSON_file_config"]["spatailjoin_flag"]):
+                    os.system(command)
+                else:
+                    __printMsg("Info","Updte Query is: "+geoentity_parent_update_query)
+                __printMsg("Info", " Phase3: Spatail join is performed for "+ geoentity)
+            else:
+                __printMsg(geoentity_parent_update_query)                 
+            __printMsg("Info", " Phase3 Process Completed for "+ geoentity) 
 
-
-
-
-
-
-
-        # # Debug Output
-        # print("✔️ Insertion preparation complete with the following extracted values:")
-        # print(f"  - Source Name: {source_name}")
-        # print(f"  - Publish Date (epoch): {source_publish_date_yyyymmdd}")
-        # print(f"  - Project: {source_project}")
-        # print(f"  - Provider: {source_provider}")
-        # print(f"  - Category: {source_category}")
-        # print(f"  - Aux Data: {source_aux}")
-        # print(f"  - File Path: {config_geojsonfile_file_path}")
-        # print(f"  - Parent Type: {config_geojsonfile_parent_type}")
-        # print(f"  - Parent GeoEntity Source ID: {config_geojsonfile_parent_geoent_source_id}")
-        # print(f"  - Prefix Identifier: {config_geojsonfile_prefix_identifier}")
-        # print(f"  - Info Attr Name: {config_geojsonfile_infoattr_name}")
-        # print(f"  - Feature ID: {config_geojsonfile_infoattr_featureid} (Type: {config_geojsonfile_infoattr_featureid_type})")
-
-        # Example: You might loop through gdf here to process or insert each row.
-        # for idx, row in gdf.iterrows():
-        #     print(row)
+        
+        #Local Variable Reset to None
+        source_name=None
+        source_publish_date_yyyymmdd=None
+        source_project=None
+        source_provider=None
+        source_category=None
+        source_aux=None            
+        config_geojsonfile_file_path=None
+        config_geojsonfile_parent_type=None
+        config_geojsonfile_parent_geoent_source_id=None
+        config_geojsonfile_prefix_identifier=None
+        config_geojsonfile_infoattr_name=None
+        config_geojsonfile_infoattr_featureid=None
+        
+        if conn is not None:    
+            cur.close()
+            conn.close()
+        __printMsg('Info',"====== GeoEntity Execution Completed and and All DB Connections are Closed. ======")
+        sys.exit() 
 
         return True
 
@@ -408,7 +493,7 @@ def republish():
         print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
         # print(gdf.head().to_string())
 
-        # insertion_success = insertion(gdf, entity_data)
+        insertion_success = insertion(gdf, entity_data, entity_key)
 
         # Example update — mark reprocess_flag true in config
         ssh = paramiko.SSHClient()
