@@ -127,6 +127,7 @@ def read_data(file_path):
     gdf = gpd.GeoDataFrame.from_features(geojson_obj["features"])
     return gdf
 
+
 def parse_config(config_path, target_key):
     # Reads config.json from remote, searches for target_key, returns that section.
 
@@ -145,6 +146,7 @@ def parse_config(config_path, target_key):
         return config_data["config"][target_key]
     else:
         return None
+
 
 def insertion(gdf, geoentity_config, geoentity):
     try:
@@ -345,9 +347,11 @@ def insertion(gdf, geoentity_config, geoentity):
         print(f"❌ Error in insertion: {e}")
         return False
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/config')
 def config():
@@ -467,6 +471,7 @@ def register():
             return render_template('register.html', message=f'Error: {e}')
 
     return render_template('register.html')
+
 
 @app.route('/republish', methods=['POST'])
 def republish():
