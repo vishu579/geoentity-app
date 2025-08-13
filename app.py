@@ -491,9 +491,8 @@ def republish():
 
         # Debug print to console
         print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
-        # print(gdf.head().to_string())
 
-        insertion_success = insertion(gdf, entity_data, entity_key)
+        # insertion_success = insertion(gdf, entity_data, entity_key)
 
         # Example update — mark reprocess_flag true in config
         ssh = paramiko.SSHClient()
