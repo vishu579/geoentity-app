@@ -6,7 +6,8 @@ import psycopg2
 import os
 import time
 import datetime
-import io
+import sys
+import math
 import paramiko
 
 app = Flask(__name__)
@@ -82,7 +83,7 @@ def __getGeoEntityID(GeoEntityIDKeys,row,type):
     else:
         return str(row[GeoEntityIDKeys])
 
-        
+
 def __getGeom(wkt):
     """
     Purpose
@@ -230,7 +231,7 @@ def insertion(gdf, geoentity_config, geoentity):
             
             if "duplicate" in e.pgerror:
                 __printMsg('Error', "=====(Phase1) Already Source is existing for "+geoentity+" ======")
-                if __GeoEntityIngestConfig[geoentity]["geoentity_source"]["reprocess_flag"]:
+                if geoentity_config["geoentity_source"]["reprocess_flag"]:
                     source_id_query="select id from "+geoentity_source_table+" where name='"+source_name+"' and publish_date="+str(source_publish_date_yyyymmdd)+" and project='"+source_project+"' and provider='"+source_provider+"' and category='"+source_category+"'"
                     cur.execute(source_id_query)
                     geoentity_source_id=cur.fetchone()[0]
