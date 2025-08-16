@@ -1,481 +1,522 @@
 {
-    "module_name":"GeoEntity Ingestion in Zonal Stats Server",
-    "about":"This module will perform ingestion of geoentity.",
-    "author":"Nitin Mishra",
-    "internal_reviewer":"Pankaj Bodani",
-    "working_entity":"CGDD/VRG/EPSA/SAC/ISRO",
-    "global_param":{
-        "database":{
-            "host":"192.168.2.149",
-            "username":"postgres",
-            "password":"Vedas@123",
-            "port":5433,
-            "db":"geoentity_stats",
-            "geoentity_table":"geoentity",
-            "geoentity_source_table":"geoentity_source",
-            "geoentity_source_seq":"geoentity_source_id_seq"
+    "module_name": "GeoEntity Ingestion in Zonal Stats Server",
+    "about": "This module will perform ingestion of geoentity.",
+    "author": "Nitin Mishra",
+    "internal_reviewer": "Pankaj Bodani",
+    "working_entity": "CGDD/VRG/EPSA/SAC/ISRO",
+    "global_param": {
+        "database": {
+            "host": "192.168.2.149",
+            "username": "postgres",
+            "password": "Vedas@123",
+            "port": 5433,
+            "db": "geoentity_stats",
+            "geoentity_table": "geoentity",
+            "geoentity_source_table": "geoentity_source",
+            "geoentity_source_seq": "geoentity_source_id_seq"
         }
     },
-    "config":
-    {
-        "geoentity_keys_to_process":["bihar_panchayat_boundary"],
-        "country_from_basin":{
-            "geoentity_source":{
-                "remark":{
+    "config": {
+        "geoentity_keys_to_process": [
+            "bihar_panchayat_boundary"
+        ],
+        "country_from_basin": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"CWC India Boundary",
-                "project":"IndiaWRIS",
-                "provider":"Land Hydrology Division EPSA SAC",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"Hydrology",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "CWC India Boundary",
+                "project": "IndiaWRIS",
+                "provider": "Land Hydrology Division EPSA SAC",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Hydrology",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCIndia.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":0,
-                    "prefix_identifier":"C",
-                    "geoJSON_info_attribute":{
-                        "name":"COUNTRY",
-                        "feature_ID":"CODE"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCIndia.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "C",
+                    "geoJSON_info_attribute": {
+                        "name": "COUNTRY",
+                        "feature_ID": "CODE"
                     }
                 }
             }
         },
-         "basin":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Mandatory Source/Metadata Information about GeoEntity."
-                 },
-                 "name":"CWC India Basin Boundary",
-                 "project":"IndiaWRIS",
-                 "provider":"Land Hydrology Division EPSA SAC",
-                 "publish_date_yyyymmdd":"20230101",
-                 "category":"Hydrology",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCBasin.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":-1,
-                     "prefix_identifier":"B",
-                     "geoJSON_info_attribute":{
-                         "name":"BA_NAME",
-                         "feature_ID":"GID"
-                     }
-                 }
-             }
-         },
-         "sub_basin":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Mandatory Source/Metadata Information about GeoEntity."
-                 },
-                 "name":"CWC India Sub-Basin Boundary",
-                 "project":"IndiaWRIS",
-                 "provider":"Land Hydrology Division EPSA SAC",
-                 "publish_date_yyyymmdd":"20230101",
-                 "category":"Hydrology",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCSubBasin.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":-1,
-                     "prefix_identifier":"SB",
-                     "geoJSON_info_attribute":{
-                         "name":"SUB_BASIN",
-                         "feature_ID":"GID"
-                     }
-                 }
-             }
-         },
-        "wetland_1718":{
-            "geoentity_source":{
-                "remark":{
+        "basin": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"Wetland 2017-18 at 1:50K",
-                "project":"Wetland Information System",
-                "provider":"Land Hydrology Division EPSA SAC",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"Wetland",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "CWC India Basin Boundary",
+                "project": "IndiaWRIS",
+                "provider": "Land Hydrology Division EPSA SAC",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Hydrology",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/india_wetbnd1718.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":-1,
-                    "prefix_identifier":"WL",
-                    "geoJSON_info_attribute":{
-                        "name":"WETNAME",
-                        "feature_ID":"GID"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCBasin.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": -1,
+                    "prefix_identifier": "B",
+                    "geoJSON_info_attribute": {
+                        "name": "BA_NAME",
+                        "feature_ID": "GID"
                     }
                 }
             }
         },
-        "soi_country":{
-            "geoentity_source":{
-                "remark":{
+        "sub_basin": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"SOI Country 2023",
-                "project":"KrishiDSS",
-                "provider":"Survey of India",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"Country",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "CWC India Sub-Basin Boundary",
+                "project": "IndiaWRIS",
+                "provider": "Land Hydrology Division EPSA SAC",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Hydrology",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/AgriDSS/Datasets/SOIIndia2023.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":0,
-                    "prefix_identifier":"C",
-                    "geoJSON_info_attribute":{
-                        "name":"Country",
-                        "feature_ID":"Code"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/CWCSubBasin.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": -1,
+                    "prefix_identifier": "SB",
+                    "geoJSON_info_attribute": {
+                        "name": "SUB_BASIN",
+                        "feature_ID": "GID"
                     }
                 }
             }
         },
-        "soi_state":{
-            "geoentity_source":{
-                "remark":{
+        "wetland_1718": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"SOI State 2023",
-                "project":"KrishiDSS",
-                "provider":"Survey of India",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"State",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "Wetland 2017-18 at 1:50K",
+                "project": "Wetland Information System",
+                "provider": "Land Hydrology Division EPSA SAC",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Wetland",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/AgriDSS/Datasets/SOIState2023.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":-1,
-                    "prefix_identifier":"S",
-                    "geoJSON_info_attribute":{
-                        "name":"STATE",
-                        "feature_ID":"STATE_LGD"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/WetLandInfoSys/Dataset/geoentity_stats/india_wetbnd1718.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": -1,
+                    "prefix_identifier": "WL",
+                    "geoJSON_info_attribute": {
+                        "name": "WETNAME",
+                        "feature_ID": "GID"
                     }
                 }
             }
         },
-        "soi_district":{
-            "geoentity_source":{
-                "remark":{
+        "soi_country": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"SOI District 2023",
-                "project":"KrishiDSS",
-                "provider":"Survey of India",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"District",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "SOI Country 2023",
+                "project": "KrishiDSS",
+                "provider": "Survey of India",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Country",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/AgriDSS/Datasets/SOIDistrict2023.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":2,
-                    "prefix_identifier":"D",
-                    "geoJSON_info_attribute":{
-                        "name":"DISTRICT",
-                        "feature_ID":"DIST_LGD"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/AgriDSS/Datasets/SOIIndia2023.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "C",
+                    "geoJSON_info_attribute": {
+                        "name": "Country",
+                        "feature_ID": "Code"
                     }
                 }
             }
         },
-        "soi_tehsil":{
-            "geoentity_source":{
-                "remark":{
+        "soi_state": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"SOI Tehsil 2023",
-                "project":"KrishiDSS",
-                "provider":"Survey of India",
-                "publish_date_yyyymmdd":"20230101",
-                "category":"Tehsil",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "SOI State 2023",
+                "project": "KrishiDSS",
+                "provider": "Survey of India",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "State",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"E:/Projects/AgriDSS/Datasets/SOITehsil2023.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":3,
-                    "prefix_identifier":"T",
-                    "geoJSON_info_attribute":{
-                        "name":"TEHSIL",
-                        "feature_ID":"SUBDT_LGD"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/AgriDSS/Datasets/SOIState2023.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": -1,
+                    "prefix_identifier": "S",
+                    "geoJSON_info_attribute": {
+                        "name": "STATE",
+                        "feature_ID": "STATE_LGD"
                     }
                 }
             }
         },
-        "mafw_village":{
-            "geoentity_source":{
-                "remark":{
+        "soi_district": {
+            "geoentity_source": {
+                "remark": {
                     "info": "Mandatory Source/Metadata Information about GeoEntity."
                 },
-                "name":"Village Boundary 2023",
-                "project":"Vegetation Monitoring",
-                "provider":"Ministry of Agriculture and Farmers Welfare",
-                "publish_date_yyyymmdd":"20231201",
-                "category":"Village",
-                "aux_data":"",
-                "reprocess_flag":true
+                "name": "SOI District 2023",
+                "project": "KrishiDSS",
+                "provider": "Survey of India",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "District",
+                "aux_data": "",
+                "reprocess_flag": true
             },
-            "geoentity_config":{
-                "remark":{
+            "geoentity_config": {
+                "remark": {
                     "info": "Mandatory information for GeoEntity insertion.",
-                    "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                               "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                            ]
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
                 },
-                "geoJSON_file_config":{
-                    "file_path":"/data/VEDAS_Projects_Datasets/VEDAS_Common/Vector/SOI_Admin_Boundary_2023_Gpkg/MAFW_Village_Boundary.geojson",
-                    "parent_type":"DB",
-                    "parent_geoentity_source_id":0,
-                    "prefix_identifier":"MAFW",
-                    "geoJSON_info_attribute":{
-                        "name":"name",
-                        "feature_ID":"v_vil_id"
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/AgriDSS/Datasets/SOIDistrict2023.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 2,
+                    "prefix_identifier": "D",
+                    "geoJSON_info_attribute": {
+                        "name": "DISTRICT",
+                        "feature_ID": "DIST_LGD"
                     }
                 }
             }
         },
-         "guj_village_sample":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Gujarat village Tintoda sample"
-                 },
-                 "name":"Gujarat Village Boundary 2025",
-                 "project":"Encroachment Monitoring",
-                 "provider":"Government of Gujarat",
-                 "publish_date_yyyymmdd":"20250331",
-                 "category":"Village",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"/data/ShwetaMishra/Tintoda/tintoda_village_boundary.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":0,
-                     "prefix_identifier":"GUJ",
-                     "geoJSON_aux_attributes" : ["id","survey_num","land_use","dtv", "plot_area"],
-                     "geoJSON_info_attribute":{
-                         "name":"dtv",
-                         "feature_ID":"geo_id"
-                     }
-                 }
-             }
-         },
-         "guj_cadastral_sample":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Gujarat cadastral Tintoda sample"
-                 },
-                 "name":"Gujarat cadastral Boundary 2025",
-                 "project":"Encroachment Monitoring",
-                 "provider":"Government of Gujarat",
-                 "publish_date_yyyymmdd":"20250331",
-                 "category":"cadastral",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"/data/ShwetaMishra/Tintoda/tintoda_cadastral_boundary.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":23,
-                     "prefix_identifier":"GUJ",
-                     "geoJSON_aux_attributes" : ["id","survey_num","land_use","dtv", "plot_area"],
-                     "geoJSON_info_attribute":{
-                         "name":"survey_num",
-                         "feature_ID":"geo_id"
-                     }
-                 }
-             }
-         },
-         "guj_village_Complete":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Gujarat village Complete"
-                 },
-                 "name":"Gujarat village Complete",
-                 "project":"Encroachment Monitoring",
-                 "provider":"Government of Gujarat",
-                 "publish_date_yyyymmdd":"20250612",
-                 "category":"cadastral",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"/data/ShwetaMishra/gujarat_cadastral_test/gujarat_revenue_village_boundary.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":0,
-                     "prefix_identifier":"GUJ",
-                     "geoJSON_aux_attributes" : ["id","dtv"],
-                     "geoJSON_info_attribute":{
-                         "name":"geoentity_",
-                         "feature_ID":"geoentity_"
-                     }
-                 }
-             }
-         },
-         "guj_cadastral_Complete_example":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Gujarat cadastral example Complete"
-                 },
-                 "name":"Gujarat cadastral example Complete",
-                 "project":"Encroachment Monitoring",
-                 "provider":"Government of Gujarat",
-                 "publish_date_yyyymmdd":"20250612",
-                 "category":"cadastral",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"/data/ShwetaMishra/gujarat_cadastral_test/guj_cadastral_combined.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":0,
-                     "prefix_identifier":"GUJ",
-                     "geoJSON_aux_attributes" : ["id","dtv","survey_number","land_use","plot_area"],
-                     "geoJSON_info_attribute":{
-                         "name":"survey_number",
-                         "feature_ID":"geoentity_id"
-                     }
-                 }
-             }
-         },
-         "bihar_panchayat_boundary":{
-             "geoentity_source":{
-                 "remark":{
-                     "info": "Bihar Panchayat Boundary"
-                 },
-                 "name":"Bihar Panchayat Boundary",
-                 "project":"Bihar Flood Alert System",
-                 "provider":"Government of Gujarat",
-                 "publish_date_yyyymmdd":"20250725",
-                 "category":"Panchayat",
-                 "aux_data":"",
-                 "reprocess_flag":true
-             },
-             "geoentity_config":{
-                 "remark":{
-                     "info": "Mandatory information for GeoEntity insertion.",
-                     "note": [  "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
-                                "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
-                             ]
-                 },
-                 "geoJSON_file_config":{
-                     "file_path":"/data/Mihir/Panchayat_boundary/Bihar_Panchayat.geojson",
-                     "parent_type":"DB",
-                     "parent_geoentity_source_id":0,
-                     "prefix_identifier":"BHRS2P",
-                     "geoJSON_aux_attributes" : ["DIST_CEN_C","BLK_NAME","ST_NAME","ST_CODE_1","GPCODE2011","DIST_NAME", "Shape_Leng", "Shape_Area", "Area"],
-                     "geoJSON_info_attribute":{
-                         "name":"GPNAME_1",
-                         "feature_ID":"GPCODE"
-                     }
-                 }
-             }
-         }
-
-
-
-
-
+        "soi_tehsil": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Mandatory Source/Metadata Information about GeoEntity."
+                },
+                "name": "SOI Tehsil 2023",
+                "project": "KrishiDSS",
+                "provider": "Survey of India",
+                "publish_date_yyyymmdd": "20230101",
+                "category": "Tehsil",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "E:/Projects/AgriDSS/Datasets/SOITehsil2023.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 3,
+                    "prefix_identifier": "T",
+                    "geoJSON_info_attribute": {
+                        "name": "TEHSIL",
+                        "feature_ID": "SUBDT_LGD"
+                    }
+                }
+            }
+        },
+        "mafw_village": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Mandatory Source/Metadata Information about GeoEntity."
+                },
+                "name": "Village Boundary 2023",
+                "project": "Vegetation Monitoring",
+                "provider": "Ministry of Agriculture and Farmers Welfare",
+                "publish_date_yyyymmdd": "20231201",
+                "category": "Village",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/VEDAS_Projects_Datasets/VEDAS_Common/Vector/SOI_Admin_Boundary_2023_Gpkg/MAFW_Village_Boundary.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "MAFW",
+                    "geoJSON_info_attribute": {
+                        "name": "name",
+                        "feature_ID": "v_vil_id"
+                    }
+                }
+            }
+        },
+        "guj_village_sample": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Gujarat village Tintoda sample"
+                },
+                "name": "Gujarat Village Boundary 2025",
+                "project": "Encroachment Monitoring",
+                "provider": "Government of Gujarat",
+                "publish_date_yyyymmdd": "20250331",
+                "category": "Village",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/ShwetaMishra/Tintoda/tintoda_village_boundary.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "GUJ",
+                    "geoJSON_aux_attributes": [
+                        "id",
+                        "survey_num",
+                        "land_use",
+                        "dtv",
+                        "plot_area"
+                    ],
+                    "geoJSON_info_attribute": {
+                        "name": "dtv",
+                        "feature_ID": "geo_id"
+                    }
+                }
+            }
+        },
+        "guj_cadastral_sample": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Gujarat cadastral Tintoda sample"
+                },
+                "name": "Gujarat cadastral Boundary 2025",
+                "project": "Encroachment Monitoring",
+                "provider": "Government of Gujarat",
+                "publish_date_yyyymmdd": "20250331",
+                "category": "cadastral",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/ShwetaMishra/Tintoda/tintoda_cadastral_boundary.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 23,
+                    "prefix_identifier": "GUJ",
+                    "geoJSON_aux_attributes": [
+                        "id",
+                        "survey_num",
+                        "land_use",
+                        "dtv",
+                        "plot_area"
+                    ],
+                    "geoJSON_info_attribute": {
+                        "name": "survey_num",
+                        "feature_ID": "geo_id"
+                    }
+                }
+            }
+        },
+        "guj_village_Complete": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Gujarat village Complete"
+                },
+                "name": "Gujarat village Complete",
+                "project": "Encroachment Monitoring",
+                "provider": "Government of Gujarat",
+                "publish_date_yyyymmdd": "20250612",
+                "category": "cadastral",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/ShwetaMishra/gujarat_cadastral_test/gujarat_revenue_village_boundary.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "GUJ",
+                    "geoJSON_aux_attributes": [
+                        "id",
+                        "dtv"
+                    ],
+                    "geoJSON_info_attribute": {
+                        "name": "geoentity_",
+                        "feature_ID": "geoentity_"
+                    }
+                }
+            }
+        },
+        "guj_cadastral_Complete_example": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Gujarat cadastral example Complete"
+                },
+                "name": "Gujarat cadastral example Complete",
+                "project": "Encroachment Monitoring",
+                "provider": "Government of Gujarat",
+                "publish_date_yyyymmdd": "20250612",
+                "category": "cadastral",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/ShwetaMishra/gujarat_cadastral_test/guj_cadastral_combined.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "GUJ",
+                    "geoJSON_aux_attributes": [
+                        "id",
+                        "dtv",
+                        "survey_number",
+                        "land_use",
+                        "plot_area"
+                    ],
+                    "geoJSON_info_attribute": {
+                        "name": "survey_number",
+                        "feature_ID": "geoentity_id"
+                    }
+                }
+            }
+        },
+        "bihar_panchayat_boundary": {
+            "geoentity_source": {
+                "remark": {
+                    "info": "Bihar Panchayat Boundary"
+                },
+                "name": "Bihar Panchayat Boundary",
+                "project": "Bihar Flood Alert System",
+                "provider": "Government of Gujarat",
+                "publish_date_yyyymmdd": "20250725",
+                "category": "Panchayat",
+                "aux_data": "",
+                "reprocess_flag": true
+            },
+            "geoentity_config": {
+                "remark": {
+                    "info": "Mandatory information for GeoEntity insertion.",
+                    "note": [
+                        "Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.",
+                        "In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB."
+                    ]
+                },
+                "geoJSON_file_config": {
+                    "file_path": "/data/Mihir/Panchayat_boundary/Bihar_Panchayat.geojson",
+                    "parent_type": "DB",
+                    "parent_geoentity_source_id": 0,
+                    "prefix_identifier": "BHRS2P",
+                    "geoJSON_aux_attributes": [
+                        "DIST_CEN_C",
+                        "BLK_NAME",
+                        "ST_NAME",
+                        "ST_CODE_1",
+                        "GPCODE2011",
+                        "DIST_NAME",
+                        "Shape_Leng",
+                        "Shape_Area",
+                        "Area"
+                    ],
+                    "geoJSON_info_attribute": {
+                        "name": "GPNAME_1",
+                        "feature_ID": "GPCODE"
+                    }
+                }
+            }
+        }
     }
 }
