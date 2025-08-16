@@ -304,7 +304,7 @@ def insertion(gdf, geoentity_config, geoentity):
         #Phase3: Parent Condition Checking
         if (config_geojsonfile_parent_geoent_source_id!=0):
             __printMsg("Info"," Phase3: Spatial join statred.")
-            #geoentity_parent_update_query="UPDATE "+geoentity_table+" SET geoentity_id=CONCAT(parent.geoentity_id,"+geoentity_table+".geoentity_id), parent_id=parent.geoentity_id, parent_name=parent.name FROM (SELECT geoentity_id, name,ST_Buffer(geom::geography,2000)::geometry as geom FROM "+geoentity_table+" where geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+") parent WHERE geoentity_source_id="+str(geoentity_source_id)+" and geoentity.parent_geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+" and ST_Contains(parent.geom,geoentity.geom);"
+            # geoentity_parent_update_query="UPDATE "+geoentity_table+" SET geoentity_id=CONCAT(parent.geoentity_id,"+geoentity_table+".geoentity_id), parent_id=parent.geoentity_id, parent_name=parent.name FROM (SELECT geoentity_id, name,ST_Buffer(geom::geography,2000)::geometry as geom FROM "+geoentity_table+" where geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+") parent WHERE geoentity_source_id="+str(geoentity_source_id)+" and geoentity.parent_geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+" and ST_Contains(parent.geom,geoentity.geom);"
             geoentity_parent_update_query="UPDATE "+geoentity_table+" AS child SET geoentity_id = CONCAT(parent.geoentity_id, child.geoentity_id), parent_id = parent.geoentity_id, parent_name = parent.name, parent_geoentity_source_id = parent.geoentity_source_id FROM (SELECT geoentity_source_id, geoentity_id, name, geom FROM  "+geoentity_table+" WHERE geoentity_source_id = "+str(config_geojsonfile_parent_geoent_source_id)+") AS parent WHERE child.geoentity_source_id = "+str(geoentity_source_id)+" AND ST_Intersects(parent.geom, child.geom) AND ST_Contains(parent.geom, ST_Centroid(child.geom))";                
             #If parent name is set then update query will not be executed
             update_test_query="SELECT COUNT(*) FROM geoentity where geoentity_source_id = "+str(geoentity_source_id)+" and parent_name is not NULL; "
@@ -312,7 +312,7 @@ def insertion(gdf, geoentity_config, geoentity):
             noof_updated_rows=cur.fetchone()[0]
             if noof_updated_rows<1:
                 command="psql -h "+host+" -U "+username+" -d "+db+" -p "+str(port)+" -c \""+geoentity_parent_update_query+"\""
-                if(__GeoEntityIngestConfig[geoentity]["geoentity_config"]["geoJSON_file_config"]["spatailjoin_flag"]):
+                if(geoentity_config["geoentity_config"]["geoJSON_file_config"]["spatailjoin_flag"]):
                     os.system(command)
                 else:
                     __printMsg("Info","Updte Query is: "+geoentity_parent_update_query)
