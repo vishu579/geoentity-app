@@ -19,7 +19,7 @@ REMOTE_PASS = os.getenv("REMOTE_PASS")
 REMOTE_CONFIG_PATH = os.getenv("REMOTE_CONFIG_PATH")
 
 host = os.getenv("HOST")
-username = os.getenv("USERNAME")
+p_username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 port = os.getenv("PORT")
 db = os.getenv("DB")
@@ -154,7 +154,7 @@ def insertion(gdf, geoentity_config, geoentity):
         conn=None
         cur=None
         try:
-            conn=psycopg2.connect(database=db, user=username, password=password, host=host, port=port)
+            conn=psycopg2.connect(database=db, user=p_username, password=password, host=host, port=port)
             conn.autocommit = True
             cur= conn.cursor()
         except:
@@ -347,6 +347,10 @@ def insertion(gdf, geoentity_config, geoentity):
     except Exception as e:
         print(f"❌ Error in insertion: {e}")
         return False
+
+
+# def generate_pyramids():
+
 
 
 @app.route('/')
