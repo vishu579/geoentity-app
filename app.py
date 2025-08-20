@@ -349,7 +349,70 @@ def insertion(gdf, geoentity_config, geoentity):
         return False
 
 
-# def generate_pyramids():
+def pyramid_generation(id, polygon_bool):
+    try:
+        # Connect to the PostGIS database move to config on a per layer basis
+        conn = psycopg2.connect(database=db, user=p_username, password=password, host=host, port=port)
+        cur = conn.cursor()
+
+
+
+        filter_query = ""
+
+        #Create the vedas_vector_tiles table if it does not exist
+        #cur.execute("DROP TABLE IF EXISTS vedas_vector_server_geom_cache")
+        # cur.execute("CREATE TABLE IF NOT EXISTS vedas_vector_server_geom_cache (layer_name VARCHAR,geo_id VARCHAR, geom GEOMETRY,tolerance VARCHAR)")
+        # cur.execute("Create index vedas_vector_server_geom_cache_gist on vedas_vector_server_geom_cache using GIST(geom)")
+        cur = conn.cursor()
+
+
+        #************************Parameter required to change********************************
+        # geoentity_source_id for which pyramid has to be generated.
+        geoentity_source_id = id
+        #if geometry type  is not polygon or multipolygon then False::
+        isPolygon = polygon_bool
+
+
+        delete_query = "DELETE FROM geoentity_pyramid_levels where geoentity_source_id = "+geoentity_source_id
+        cur.execute(delete_query)
+        conn.commit()
+
+        tolerances = ["0.08192","0.04096","0.02048","0.01024","0.00512", "0.00256", "0.00128", "0.00064","0.00032","0.00016","0.00008", "0.00004", "0.00002", "0.00001","original"]
+        tolerances.reverse()
+        prev_tol = ""
+
+
+
+        for level in range(len(tolerances)):
+
+            
+            insert_prefix = "INSERT INTO geoentity_pyramid_levels (geoentity_source_id,geoentity_id,level,geom) "
+
+            print("Looping ",level)
+            if level == 0:
+                print("Entered if",level)
+                print("Ingesting ",level,tolerances[level])
+                querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id, "+str(level)+",  geom FROM geoentity where geoentity_source_id="+geoentity_source_id+" " + ("and ST_IsValid(ST_Buffer(geom,0))" if isPolygon else " ")
+                print("Query",querystr)
+                cur.execute(querystr)
+                conn.commit()
+            else:
+                print("Entered else",level)
+                gridsize = str(0.000001)
+                if(float(tolerances[level])>0.00001):
+                    gridsize = str(0.00001)
+                if(float(tolerances[level])>0.0001):
+                    gridsize = str(0.0001)
+                if(float(tolerances[level])>0.001):
+                    gridsize = str(0.001)
+                print("Ingesting ",level,tolerances[level],gridsize)
+                querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id,"+str(level)+", "+ ("ST_MakeValid(ST_Buffer(ST_SnapToGrid(ST_SimplifyPreserveTopology(geom,"+tolerances[level]+"),0,0,"+gridsize+","+gridsize+"),0))" if isPolygon else "geom") +" FROM geoentity_pyramid_levels where geoentity_source_id="+geoentity_source_id+" and level="+str(level-1)+" AND geom IS NOT NULL AND NOT ST_IsEmpty(geom) AND ST_IsValid(geom)"
+                print("Query",querystr)
+                cur.execute(querystr)
+                conn.commit()
+
+    except Exception as e:
+        print(f"❌ Error in insertion: {e}")
 
 
 
@@ -533,6 +596,28 @@ def republish():
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/generate_pyramids', methods=['POST'])
+def generate_pyramids():
+    try:
+        generate_pyramid_key = request.form.get("geoentity_source_id")
+        if not generate_pyramid_key:
+            return jsonify({"status": "error", "message": "No key provided"}), 400
+
+        isPolygon = request.form.get("is_polygon") == "True"
+
+        pyramid_generation(generate_pyramid_key, isPolygon)
+
+        return jsonify({
+                    "status": "success",
+                    "message": f"Pyramid generated for {generate_pyramid_key}",
+                }), 200
+
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0',port='5003')
