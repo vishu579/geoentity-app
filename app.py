@@ -19,7 +19,7 @@ REMOTE_PASS = os.getenv("REMOTE_PASS")
 REMOTE_CONFIG_PATH = os.getenv("REMOTE_CONFIG_PATH")
 
 host = os.getenv("HOST")
-p_username = os.getenv("USERNAME")
+username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 port = os.getenv("PORT")
 db = os.getenv("DB")
@@ -154,7 +154,7 @@ def insertion(gdf, geoentity_config, geoentity):
         conn=None
         cur=None
         try:
-            conn=psycopg2.connect(database=db, user=p_username, password=password, host=host, port=port)
+            conn=psycopg2.connect(database=db, user=username, password=password, host=host, port=port)
             conn.autocommit = True
             cur= conn.cursor()
         except:
@@ -352,7 +352,7 @@ def insertion(gdf, geoentity_config, geoentity):
 def pyramid_generation(id, polygon_bool):
     try:
         # Connect to the PostGIS database move to config on a per layer basis
-        conn = psycopg2.connect(database=db, user=p_username, password=password, host=host, port=port)
+        conn = psycopg2.connect(database=db, user=username, password=password, host=host, port=port)
         cur = conn.cursor()
 
 
