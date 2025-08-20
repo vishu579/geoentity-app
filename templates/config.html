@@ -31,6 +31,7 @@
             <div class="controls">
                 <h2>Current Configuration</h2>
                 <a href="{{ url_for('register') }}" class="button">Register New Entity</a>
+                <button id="generatePyramidsBtn" class="button">Generate Pyramids</button>
             </div>
             {% for key, value in config.items() %}
             {% if value is mapping %}
@@ -108,6 +109,30 @@
             {% endfor %}
 
         </div>
+        <div id="pyramidModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" class="close">&times;</span>
+                <h3>Generate Pyramids</h3>
+                <form id="pyramidForm">
+                    <div>
+                        <label for="geoentitySourceId">Geoentity Source ID:</label>
+                        <input type="text" id="geoentitySourceId" name="geoentity_source_id" required />
+                    </div>
+                    <div class="popupform">
+                        <label for="is_polygon">isPolygon: </label>
+                        <div class="radio-buttons">
+                            <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                <input type="radio" name="is_polygon" value="True" /> True
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                <input type="radio" name="is_polygon" value="False" /> False
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit">Generate</button>
+                </form>
+            </div>
+        </div>
     </main>
     <footer class="footer">
         © 2025 VEDAS, SAC, ISRO, Government of India | All Rights Reserved
@@ -151,6 +176,59 @@
                             alert('Error triggering republish: ' + err);
                         });
                 });
+            });
+
+            // Modal Elements
+            const modal = document.getElementById('pyramidModal');
+            const openBtn = document.getElementById('generatePyramidsBtn');
+            const closeBtn = document.getElementById('closeModal');
+            const form = document.getElementById('pyramidForm');
+
+            // Open modal on button click
+            openBtn.addEventListener('click', () => {
+                modal.style.display = 'block';
+            });
+
+            // Close modal on 'x' click
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            // Close modal if clicked outside modal-content
+            window.addEventListener('click', (event) => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const geoentitySourceId = form.geoentity_source_id.value.trim();
+
+                if (!geoentitySourceId) {
+                    alert('Please enter a Geoentity Source ID');
+                    return;
+                }
+
+                // You can replace the below fetch URL and method as per your backend API
+                fetch('/generate_pyramids', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `geoentity_source_id=${encodeURIComponent(geoentitySourceId)}`
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message || 'Pyramid generation triggered');
+                        if (data.status === 'success') {
+                            modal.style.display = 'none';
+                            form.reset();
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        alert('Error generating pyramids: ' + err);
+                    });
             });
         });
     </script>
