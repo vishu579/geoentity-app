@@ -492,22 +492,34 @@ textarea {
   /* On top */
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: auto;
-  /* Enable scroll if needed */
   background-color: rgba(0, 0, 0, 0.5);
   /* Black background with opacity */
 }
 
 .modal-content {
+  display: flex;
+  flex-direction: column;
   background-color: #fefefe;
-  margin: 15% auto;
-  /* 15% from top, centered */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   padding: 20px;
   border: 1px solid #888;
-  width: 500px;
+  width: 700px;
+  height: 550px;
   border-radius: 5px;
+  resize: both;
+  overflow: hidden;
+  /* prevent double scrollbars */
+  box-sizing: border-box;
+  max-width: 90vw;
+  max-height: 90vh;
+  min-height: 50vh;
+  min-width: 50vh;
 }
 
 .close {
@@ -538,4 +550,41 @@ textarea {
 .radio-buttons {
   display: flex;
   gap: 1rem;
+}
+
+.republish-btn {
+  background-color: #496e96;
+  color: white;
+  font-weight: 400;
+  font-size: 0.9rem;
+  padding: 0.6em 1.4em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.3);
+  user-select: none;
+}
+
+.republish-btn:hover {
+  background-color: #007bff;
+  box-shadow: 0 6px 12px rgba(83, 91, 242, 0.5)
+}
+
+.log-container {
+  flex-grow: 1;
+  /* takes remaining vertical space */
+  overflow-y: auto;
+  /* scroll if content overflows */
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: black;
+  color: white;
+  white-space: pre;
+  margin-top: 15px;
+}
+
+.close-div {
+  display: flex;
+  justify-content: space-between;
 }
