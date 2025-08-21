@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
 from dotenv import load_dotenv
 import json
 import geopandas as gpd
@@ -19,7 +19,7 @@ REMOTE_PASS = os.getenv("REMOTE_PASS")
 REMOTE_CONFIG_PATH = os.getenv("REMOTE_CONFIG_PATH")
 
 host = os.getenv("HOST")
-username = os.getenv("USERNAME")
+username = os.getenv("SERVER_USERNAME")
 password = os.getenv("PASSWORD")
 port = os.getenv("PORT")
 db = os.getenv("DB")
@@ -388,16 +388,25 @@ def pyramid_generation(id, polygon_bool):
             
             insert_prefix = "INSERT INTO geoentity_pyramid_levels (geoentity_source_id,geoentity_id,level,geom) "
 
-            print("Looping ",level)
+            # print("Looping ",level)
+            yield f"Looping {level}"
             if level == 0:
-                print("Entered if",level)
-                print("Ingesting ",level,tolerances[level])
+                # print("Entered if",level)
+                yield f"Enetered if {level}"
+
+                # print("Ingesting ",level,tolerances[level])
+                yield f"Ingesting {level} {tolerances[level]}"
+
                 querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id, "+str(level)+",  geom FROM geoentity where geoentity_source_id="+geoentity_source_id+" " + ("and ST_IsValid(ST_Buffer(geom,0))" if isPolygon else " ")
-                print("Query",querystr)
+                # print("Query",querystr)
+                yield f"Query {querystr}"
+
                 cur.execute(querystr)
                 conn.commit()
             else:
-                print("Entered else",level)
+                # print("Entered else",level)
+                yield f"Entered else {level}"
+
                 gridsize = str(0.000001)
                 if(float(tolerances[level])>0.00001):
                     gridsize = str(0.00001)
@@ -405,14 +414,19 @@ def pyramid_generation(id, polygon_bool):
                     gridsize = str(0.0001)
                 if(float(tolerances[level])>0.001):
                     gridsize = str(0.001)
-                print("Ingesting ",level,tolerances[level],gridsize)
+                # print("Ingesting ",level,tolerances[level],gridsize)
+                yield f"Ingesting {level} {tolerances[level]} {gridsize}"
+
                 querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id,"+str(level)+", "+ ("ST_MakeValid(ST_Buffer(ST_SnapToGrid(ST_SimplifyPreserveTopology(geom,"+tolerances[level]+"),0,0,"+gridsize+","+gridsize+"),0))" if isPolygon else "geom") +" FROM geoentity_pyramid_levels where geoentity_source_id="+geoentity_source_id+" and level="+str(level-1)+" AND geom IS NOT NULL AND NOT ST_IsEmpty(geom) AND ST_IsValid(geom)"
-                print("Query",querystr)
+                # print("Query",querystr)
+                yield f"Query {querystr}"
+
                 cur.execute(querystr)
                 conn.commit()
 
     except Exception as e:
-        print(f"❌ Error in insertion: {e}")
+        # print(f"Error in pyramid generation: {e}")
+        yield f"Error in pyramid generation: {e}"
 
 
 
@@ -565,7 +579,7 @@ def republish():
         # Debug print to console
         print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
 
-        # insertion_success = insertion(gdf, entity_data, entity_key)
+        insertion_success = insertion(gdf, entity_data, entity_key)
 
         # Example update — mark reprocess_flag true in config
         ssh = paramiko.SSHClient()
@@ -607,16 +621,39 @@ def generate_pyramids():
 
         isPolygon = request.form.get("is_polygon") == "True"
 
-        pyramid_generation(generate_pyramid_key, isPolygon)
+        # Run the function normally without streaming logs
+        # (Can be refactored to call the generator and collect logs if needed)
+        logs = []
+        for log in pyramid_generation(generate_pyramid_key, isPolygon):
+            logs.append(log)
+        # Optionally you can save logs somewhere or print
+        print("".join(logs))
 
         return jsonify({
-                    "status": "success",
-                    "message": f"Pyramid generated for {generate_pyramid_key}",
-                }), 200
-
+            "status": "success",
+            "message": f"Pyramid generated for {generate_pyramid_key}",
+        }), 200
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/generate_pyramids_sse_stream', methods=['GET'])
+def generate_pyramids_sse_stream():
+    geoentity_source_id = request.args.get("geoentity_source_id")
+    if not geoentity_source_id:
+        return jsonify({"status": "error", "message": "No key provided"}), 400
+
+    isPolygon = request.args.get("is_polygon") == "True"
+
+    def generate():
+        # Yield SSE formatted messages
+        for log in pyramid_generation(geoentity_source_id, isPolygon):
+            # SSE event format: data: <message>\n\n
+            yield f"data: {log.strip()}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
 
 
 if __name__ == '__main__':
