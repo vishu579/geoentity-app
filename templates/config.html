@@ -38,7 +38,7 @@
             <div class="geoentity-card">
                 <!-- Make the title clickable and add class for JS toggle -->
                 <h2 class="geoentity-title">
-                    {{ loop.index }}. {{ key }}
+                    {{ loop.index }}. {{ value.geoentity_source.name }}
                     {% if value.geoentity_source.reprocess_flag %}
                     <button class="republish-btn" data-key="{{ key }}">Republish</button>
                     {% endif %}
