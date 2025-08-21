@@ -111,8 +111,10 @@
         </div>
         <div id="pyramidModal" class="modal">
             <div class="modal-content">
-                <span id="closeModal" class="close">&times;</span>
-                <h3>Generate Pyramids</h3>
+                <div class="close-div">
+                    <h3>Generate Pyramids</h3>
+                    <span id="closeModal" class="close">&times;</span>
+                </div>
                 <form id="pyramidForm">
                     <div>
                         <label for="geoentitySourceId">Geoentity Source ID:</label>
@@ -129,8 +131,9 @@
                             </label>
                         </div>
                     </div>
-                    <button type="submit">Generate</button>
+                    <button type="submit" class="button">Generate</button>
                 </form>
+                <div id="logContainer" class="log-container"></div>
             </div>
         </div>
     </main>
@@ -139,7 +142,6 @@
     </footer>
 
     <script>
-        // Wait for DOM to load
         document.addEventListener('DOMContentLoaded', function () {
             const titles = document.querySelectorAll('.geoentity-title');
 
@@ -152,9 +154,10 @@
                 });
             });
 
+            // Republish buttons
             document.querySelectorAll('.republish-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
-                    e.stopPropagation(); // prevent click from toggling the heading
+                    e.stopPropagation();
                     const entityKey = this.dataset.key;
                     console.log(`Republish clicked for ${entityKey}`);
 
@@ -167,7 +170,6 @@
                         .then(data => {
                             alert(data.message);
                             if (data.status === "success") {
-                                // Optional: reload the page so updated config is visible
                                 location.reload();
                             }
                         })
@@ -183,51 +185,82 @@
             const openBtn = document.getElementById('generatePyramidsBtn');
             const closeBtn = document.getElementById('closeModal');
             const form = document.getElementById('pyramidForm');
+            const logContainer = document.getElementById('logContainer');
+            let eventSource;
 
-            // Open modal on button click
             openBtn.addEventListener('click', () => {
                 modal.style.display = 'block';
             });
 
-            // Close modal on 'x' click
             closeBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
-            });
-
-            // Close modal if clicked outside modal-content
-            window.addEventListener('click', (event) => {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
                 }
+                logContainer.textContent = '';
+                form.reset();
             });
 
-            // Handle form submission
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const geoentitySourceId = form.geoentity_source_id.value.trim();
+                const isPolygon = form.is_polygon.value;
 
                 if (!geoentitySourceId) {
                     alert('Please enter a Geoentity Source ID');
                     return;
                 }
+                if (!isPolygon) {
+                    alert('Please select if isPolygon is True or False');
+                    return;
+                }
 
-                // You can replace the below fetch URL and method as per your backend API
+                // Clear previous logs
+                logContainer.textContent = '';
+
+                // Disable the form during generation
+                form.querySelector('button[type="submit"]').disabled = true;
+
+                // First POST to trigger pyramid generation
                 fetch('/generate_pyramids', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `geoentity_source_id=${encodeURIComponent(geoentitySourceId)}`
+                    body: `geoentity_source_id=${encodeURIComponent(geoentitySourceId)}&is_polygon=${encodeURIComponent(isPolygon)}`
                 })
                     .then(res => res.json())
                     .then(data => {
-                        alert(data.message || 'Pyramid generation triggered');
-                        if (data.status === 'success') {
-                            modal.style.display = 'none';
-                            form.reset();
+                        if (data.status !== 'success') {
+                            alert(data.message || 'Failed to start pyramid generation');
+                            form.querySelector('button[type="submit"]').disabled = false;
+                            return;
                         }
+
+                        // After successful trigger, open SSE to receive logs
+                        const params = new URLSearchParams({
+                            geoentity_source_id: geoentitySourceId,
+                            is_polygon: isPolygon
+                        });
+                        eventSource = new EventSource('/generate_pyramids_sse_stream?' + params.toString());
+
+                        eventSource.onmessage = function (event) {
+                            logContainer.textContent += event.data + '\n';
+                            logContainer.scrollTop = logContainer.scrollHeight;
+                        };
+
+                        eventSource.onerror = function () {
+                            eventSource.close();
+                            eventSource = null;
+                            form.querySelector('button[type="submit"]').disabled = false;
+
+                            // Optional: close modal automatically
+                            // modal.style.display = 'none';
+                        };
                     })
                     .catch(err => {
                         console.error('Error:', err);
                         alert('Error generating pyramids: ' + err);
+                        form.querySelector('button[type="submit"]').disabled = false;
                     });
             });
         });
