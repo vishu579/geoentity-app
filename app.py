@@ -450,7 +450,6 @@ def config():
         sftp = ssh.open_sftp()
 
         with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_file:
-            print("path is", remote_file)
             config_str = remote_file.read()
         config_data = json.loads(config_str)
 
@@ -522,7 +521,7 @@ def register():
 
             # Upload GeoJSON
             remote_dir = os.path.dirname(REMOTE_CONFIG_PATH)
-            remote_geojson_path = f"{remote_dir.rstrip('/')}/{filename}"
+            remote_geojson_path = f"{remote_dir.rstrip('/')}/Geojson_Files/{filename}"
             geojson_file.seek(0)
             with sftp.open(remote_geojson_path, 'wb') as remote_file:
                 remote_file.write(geojson_file.read())
