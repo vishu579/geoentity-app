@@ -298,11 +298,16 @@ def insertion(gdf, geoentity_config, geoentity):
         __printMsg("Info"," Phase2 GeoEntity Insertion: Successfully processed records:"+str(processed_record))
         __printMsg("Info"," Phase2 GeoEntity Insertion: Failed Records:"+str(failed_record)+" \n")
         __printMsg("Info", "Phase2: GeoEntity Insertion Successfully Completed.")
+        if (config_geojsonfile_parent_geoent_source_id==0):
+            return True
+        else:
+
+            
 
 
         #Phase3: Spaitail Join 
         #Phase3: Parent Condition Checking
-        if (config_geojsonfile_parent_geoent_source_id!=0):
+        # if (config_geojsonfile_parent_geoent_source_id!=0):
             __printMsg("Info"," Phase3: Spatial join statred.")
             # geoentity_parent_update_query="UPDATE "+geoentity_table+" SET geoentity_id=CONCAT(parent.geoentity_id,"+geoentity_table+".geoentity_id), parent_id=parent.geoentity_id, parent_name=parent.name FROM (SELECT geoentity_id, name,ST_Buffer(geom::geography,2000)::geometry as geom FROM "+geoentity_table+" where geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+") parent WHERE geoentity_source_id="+str(geoentity_source_id)+" and geoentity.parent_geoentity_source_id="+str(config_geojsonfile_parent_geoent_source_id)+" and ST_Contains(parent.geom,geoentity.geom);"
             geoentity_parent_update_query="UPDATE "+geoentity_table+" AS child SET geoentity_id = CONCAT(parent.geoentity_id, child.geoentity_id), parent_id = parent.geoentity_id, parent_name = parent.name, parent_geoentity_source_id = parent.geoentity_source_id FROM (SELECT geoentity_source_id, geoentity_id, name, geom FROM  "+geoentity_table+" WHERE geoentity_source_id = "+str(config_geojsonfile_parent_geoent_source_id)+") AS parent WHERE child.geoentity_source_id = "+str(geoentity_source_id)+" AND ST_Intersects(parent.geom, child.geom) AND ST_Contains(parent.geom, ST_Centroid(child.geom))";                
@@ -321,7 +326,7 @@ def insertion(gdf, geoentity_config, geoentity):
                 __printMsg(geoentity_parent_update_query)                 
             __printMsg("Info", " Phase3 Process Completed for "+ geoentity) 
 
-        
+            
         #Local Variable Reset to None
         source_name=None
         source_publish_date_yyyymmdd=None
@@ -445,6 +450,7 @@ def config():
         sftp = ssh.open_sftp()
 
         with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_file:
+            print("path is", remote_file)
             config_str = remote_file.read()
         config_data = json.loads(config_str)
 
