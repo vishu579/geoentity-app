@@ -28,10 +28,13 @@
 
     <main id="app" class="main-container">
         <div class="container">
-            <div class="controls">
+            <div class="config-controls">
                 <h2>Current Configuration</h2>
-                <a href="{{ url_for('register') }}" class="button">Register New Entity</a>
-                <button id="generatePyramidsBtn" class="button">Generate Pyramids</button>
+                <div class="config-controls-div">
+                    <a href="{{ url_for('index') }}" class="button">Back</a>
+                    <a href="{{ url_for('register') }}" class="button">Register New Entity</a>
+                    <button id="generatePyramidsBtn" class="button">Generate Pyramids</button>
+                </div>
             </div>
             {% for key, value in config.items() %}
             {% if value is mapping %}
