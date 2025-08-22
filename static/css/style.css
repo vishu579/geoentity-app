@@ -310,6 +310,18 @@ tbody tr:hover {
   flex-wrap: wrap;
 }
 
+.config-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.config-controls-div {
+  display: flex;
+  gap: 40px;
+}
+
 .geoentity-card {
   background: #ffffff;
   border-radius: 8px;
@@ -473,7 +485,7 @@ textarea {
   grid-column: 1 / -1;
   /* Span the entire grid width */
   display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
   margin-top: 30px;
 }
 
@@ -587,4 +599,8 @@ textarea {
 .close-div {
   display: flex;
   justify-content: space-between;
+}
+
+a {
+  text-decoration: none;
 }
