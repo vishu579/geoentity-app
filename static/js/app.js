@@ -10,6 +10,7 @@ new Vue({
         selectedSortKey: '',
         sortAsc: true,
         sortableKeys: ['id', 'name', 'category', 'parent_id', 'project', 'theme'],
+        selectedProject: '',
         selectedCategory: '',
         selectedTheme: ''
     },
@@ -24,8 +25,14 @@ new Vue({
                 theme: 'Theme'
             };
         },
-        sortableKeysWithoutCategoryTheme() {
-            return this.sortableKeys.filter(k => k !== 'category' && k !== 'theme');
+        sortableKeysWithoutProjectCategoryTheme() {
+            return this.sortableKeys.filter(k => k !== 'category' && k !== 'theme' && k !== 'project');
+        },
+        uniqueProjects() {
+            const projs = this.rawData
+                .map(item => item.project)
+                .filter(p => p != null && p !== '');
+            return [...new Set(projs)].sort();
         },
         uniqueCategories() {
             const cats = this.rawData
@@ -69,10 +76,11 @@ new Vue({
                     (item.id && item.id.toString().includes(q)) ||
                     (item.parent_id !== null && item.parent_id.toString().includes(q));
 
+                const matchesProject = !this.selectedProject || item.project === this.selectedProject;
                 const matchesCategory = !this.selectedCategory || item.category === this.selectedCategory;
                 const matchesTheme = !this.selectedTheme || item.theme === this.selectedTheme;
 
-                return matchesSearch && matchesCategory && matchesTheme;
+                return matchesSearch && matchesProject && matchesCategory && matchesTheme;
             });
 
             if (this.selectedSortKey) {
