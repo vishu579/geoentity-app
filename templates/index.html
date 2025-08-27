@@ -39,11 +39,19 @@
           <label class="label">Sort by:</label>
           <select v-model="selectedSortKey" @change="handleSortChange" class="custom-select">
             <option value="">-- Select sort key --</option>
-            <option v-for="key in sortableKeysWithoutCategoryTheme" :value="key">${ keyLabels[key] }</option>
+            <option v-for="key in sortableKeysWithoutProjectCategoryTheme" :value="key">${ keyLabels[key] }</option>
           </select>
           <!-- <button v-if="selectedSortKey" @click="toggleSortOrder" class="btn sort-btn">
             Sort: ${ sortAsc ? 'Ascending ↑' : 'Descending ↓' }
           </button> -->
+        </div>
+
+        <div>
+          <label class="label" style="margin-left: 1rem;">Project:</label>
+          <select v-model="selectedProject" @change="filterData" class="custom-select">
+            <option value="">All Projects</option>
+            <option v-for="proj in uniqueProjects" :value="proj">${ proj }</option>
+          </select>
         </div>
 
         <div>
