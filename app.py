@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from flask import Flask, render_template, redirect, url_for, request, jsonify, Response, stream_with_context
 from dotenv import load_dotenv
 import json
 import geopandas as gpd
@@ -492,7 +492,7 @@ def register():
                 "publish_date_yyyymmdd": request.form.get("publish_date_yyyymmdd"),
                 "category": request.form.get("category"),
                 "aux_data": request.form.get("aux-data"),
-                "reprocess_flag": request.form.get("reprocess_flag") == "True"
+                "reprocess_flag": False
             }
 
             geoentity_config = {
@@ -521,7 +521,7 @@ def register():
 
             # Upload GeoJSON
             remote_dir = os.path.dirname(REMOTE_CONFIG_PATH)
-            remote_geojson_path = f"{remote_dir.rstrip('/')}/Geojson_Files/{filename}"
+            remote_geojson_path = f"{remote_dir.rstrip('/')}/{filename}"
             geojson_file.seek(0)
             with sftp.open(remote_geojson_path, 'wb') as remote_file:
                 remote_file.write(geojson_file.read())
@@ -552,7 +552,7 @@ def register():
             sftp.close()
             ssh.close()
 
-            return render_template('register.html', message='GeoJSON and config updated successfully.')
+            return redirect(url_for('config'))
 
         except Exception as e:
             return render_template('register.html', message=f'Error: {e}')
@@ -584,7 +584,7 @@ def republish():
         # Debug print to console
         print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
 
-        insertion_success = insertion(gdf, entity_data, entity_key)
+        # insertion_success = insertion(gdf, entity_data, entity_key)
 
         # Example update — mark reprocess_flag true in config
         ssh = paramiko.SSHClient()
@@ -598,6 +598,12 @@ def republish():
         if "config" in config_data and entity_key in config_data["config"]:
             # Replace keys_to_process with only this key
             config_data["config"]["geoentity_keys_to_process"] = [entity_key]
+
+        # Update reprocess_flag if currently False
+        geoentity_source = config_data["config"][entity_key].get("geoentity_source", {})
+        if "reprocess_flag" in geoentity_source and geoentity_source["reprocess_flag"] is False:
+            geoentity_source["reprocess_flag"] = True
+            config_data["config"][entity_key]["geoentity_source"] = geoentity_source
 
         with sftp.open(REMOTE_CONFIG_PATH, 'w') as remote_file:
             remote_file.write(json.dumps(config_data, indent=4))

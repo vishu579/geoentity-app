@@ -18,7 +18,7 @@
                 <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/vedas_logo.png" alt="VEDAS" />
             </a>
         </div>
-        <h1 class="dashboard-title">Configured Geoentities</h1>
+        <h1 class="dashboard-title">Configured Geoentity Sources</h1>
         <div class="logo-box">
             <a href="https://www.isro.gov.in/" target="_blank">
                 <img src="https://vedas.sac.gov.in/vstatic/data_monitoring_system/img/rightside.png" alt="ISRO" />
@@ -29,10 +29,9 @@
     <main id="app" class="main-container">
         <div class="container">
             <div class="config-controls">
-                <h2>Current Configuration</h2>
                 <div class="config-controls-div">
                     <a href="{{ url_for('index') }}" class="button">Back</a>
-                    <a href="{{ url_for('register') }}" class="button">Register New Entity</a>
+                    <a href="{{ url_for('register') }}" class="button">Register New Source</a>
                     <button id="generatePyramidsBtn" class="button">Generate Pyramids</button>
                 </div>
             </div>
@@ -43,7 +42,9 @@
                 <h2 class="geoentity-title">
                     {{ loop.index }}. {{ value.geoentity_source.name }}
                     {% if value.geoentity_source.reprocess_flag %}
-                    <button class="republish-btn" data-key="{{ key }}">Republish</button>
+                        <button class="republish-btn" data-key="{{ key }}">Republish</button>
+                    {% else %}
+                        <button class="republish-btn" data-key="{{ key }}">Publish</button>
                     {% endif %}
                 </h2>
 

@@ -63,7 +63,7 @@ input {
 
 
 .main-container {
-  padding: 30px 50px;
+  padding: 10px 50px;
 }
 
 
@@ -315,6 +315,7 @@ tbody tr:hover {
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  padding: 10px;
 }
 
 .config-controls-div {

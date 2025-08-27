@@ -62,16 +62,6 @@
 
                 <label for="aux-data">Aux data:</label>
                 <input id="aux-data" type="text" name="aux-data" />
-
-                <label for="reprocess_flag">Reprocess Flag:</label>
-                <div id="reprocess_flag" class="radio-buttons">
-                    <label style="display: flex; align-items: center; gap: 0.3rem;">
-                        <input type="radio" name="reprocess_flag" value="True" /> True
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 0.3rem;">
-                        <input type="radio" name="reprocess_flag" value="False" /> False
-                    </label>
-                </div>
             </div>
 
             <hr class="form-divider" /> <!-- Geoentity Config Section -->
@@ -120,7 +110,6 @@
 
             <!-- Submit Button -->
             <div class="form-button-container">
-                <a href="{{ url_for('config') }}" class="button">Back</a>
                 <button type="submit" class="button">Save</button>
             </div>
         </form>
