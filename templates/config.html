@@ -32,7 +32,7 @@
                 <div class="config-controls-div">
                     <a href="{{ url_for('index') }}" class="button">Back</a>
                     <a href="{{ url_for('register') }}" class="button">Register New Source</a>
-                    <button id="generatePyramidsBtn" class="button">Generate Pyramids</button>
+                    <!-- <button id="generatePyramidsBtn" class="button">Generate Pyramids</button> -->
                 </div>
             </div>
             {% for key, value in config.items() %}
@@ -41,11 +41,20 @@
                 <!-- Make the title clickable and add class for JS toggle -->
                 <h2 class="geoentity-title">
                     {{ loop.index }}. {{ value.geoentity_source.name }}
-                    {% if value.geoentity_source.reprocess_flag %}
+                    <div>
+                        <button onclick="window.location.href='/register?key={{ key }}'" title="Edit Geoentity">
+                            ✏️
+                        </button>
+                        <button class="generate-pyramid-btn" data-name="{{ value.geoentity_source.name }}">
+                            Loading...
+                        </button>
+
+                        {% if value.geoentity_source.reprocess_flag %}
                         <button class="republish-btn" data-key="{{ key }}">Republish</button>
-                    {% else %}
+                        {% else %}
                         <button class="republish-btn" data-key="{{ key }}">Publish</button>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </h2>
 
                 <!-- Wrap the content in a div to toggle -->
@@ -184,17 +193,55 @@
                 });
             });
 
+            fetch('http://192.168.2.202:5000/check-pyramid-levels')
+                .then(res => res.json())
+                .then(data => {
+                    // Create a lookup map by name for quick reference
+                    const pyramidStatusMap = {};
+                    data.forEach(item => {
+                        pyramidStatusMap[item.name] = { id: item.id, status: item.pyramid_levels_available };
+                    });
+
+                    // Update all generate-pyramid buttons accordingly
+                    document.querySelectorAll('.generate-pyramid-btn').forEach(btn => {
+                        const name = btn.dataset.name;
+                        if (pyramidStatusMap[name]) {
+                            const { id, status } = pyramidStatusMap[name];
+                            btn.dataset.id = id;  // store id for later use
+
+                            if (status === 'yes') {
+                                btn.textContent = 'Regenerate Pyramid';
+                                btn.style.display = 'inline-block';
+                            } else if (status === 'no') {
+                                btn.textContent = 'Generate Pyramid';
+                                btn.style.display = 'inline-block';
+                            }
+                        } else {
+                            // No match found, hide the button
+                            btn.style.display = 'none';
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching pyramid levels:', err);
+                    // Hide all buttons if API fails (optional fallback)
+                    document.querySelectorAll('.generate-pyramid-btn').forEach(btn => {
+                        btn.style.display = 'none';
+                    });
+                });
+
+
             // Modal Elements
             const modal = document.getElementById('pyramidModal');
-            const openBtn = document.getElementById('generatePyramidsBtn');
+            // const openBtn = document.getElementById('generatePyramidsBtn');
             const closeBtn = document.getElementById('closeModal');
             const form = document.getElementById('pyramidForm');
             const logContainer = document.getElementById('logContainer');
             let eventSource;
 
-            openBtn.addEventListener('click', () => {
-                modal.style.display = 'block';
-            });
+            // openBtn.addEventListener('click', () => {
+            //     modal.style.display = 'block';
+            // });
 
             closeBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
@@ -204,6 +251,24 @@
                 }
                 logContainer.textContent = '';
                 form.reset();
+            });
+
+            document.querySelectorAll('.generate-pyramid-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+
+                    const id = this.dataset.id;
+
+                    // Open the modal
+                    modal.style.display = 'block';
+
+                    // Pre-fill geoentitySourceId input with the name (or you can use an ID if available)
+                    form.geoentity_source_id.value = id;
+
+                    // Reset logs and enable form submit button
+                    logContainer.textContent = '';
+                    form.querySelector('button[type="submit"]').disabled = false;
+                });
             });
 
             form.addEventListener('submit', (e) => {
