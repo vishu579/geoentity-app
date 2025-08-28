@@ -37,31 +37,37 @@
             <!-- Geoentity Source Section -->
             <div class="form-section">
                 <label for="key">Key:</label>
+                {% if key %}
+                <!-- If editing, show readonly input -->
+                <input id="key" type="text" name="key" value="{{ key }}" readonly />
+                {% else %}
+                <!-- If adding new, show editable input -->
                 <input id="key" type="text" name="key" required />
+                {% endif %}
 
                 <hr class="form-divider" />
                 <div class="section-heading" style="grid-row: span 7;">Geoentity Source</div>
 
                 <label for="source_remark_info">Remark Info:</label>
-                <textarea id="source_remark_info" name="source_remark_info" rows="2"></textarea>
+                <textarea id="source_remark_info" name="source_remark_info" rows="2">{{ prefill.geoentity_source.remark.info if prefill else '' }}</textarea>
 
                 <label for="name">Name:</label>
-                <input id="name" type="text" name="name" required />
+                <input id="name" type="text" name="name" value="{{ prefill.geoentity_source.name if prefill else '' }}" required />
 
                 <label for="project">Project:</label>
-                <input id="project" type="text" name="project" required />
+                <input id="project" type="text" name="project" value="{{ prefill.geoentity_source.project if prefill else '' }}" required />
 
                 <label for="provider">Provider:</label>
-                <input id="provider" type="text" name="provider" required />
+                <input id="provider" type="text" name="provider" value="{{ prefill.geoentity_source.provider if prefill else '' }}" required />
 
                 <label for="publish_date_yyyymmdd">Publish Date:</label>
-                <input id="publish_date_yyyymmdd" type="text" name="publish_date_yyyymmdd" placeholder="YYYYMMDD" />
+                <input id="publish_date_yyyymmdd" type="text" name="publish_date_yyyymmdd" value="{{ prefill.geoentity_source.publish_date_yyyymmdd if prefill else '' }}" placeholder="YYYYMMDD" />
 
                 <label for="category">Category:</label>
-                <input id="category" type="text" name="category" required />
+                <input id="category" type="text" name="category" value="{{ prefill.geoentity_source.category if prefill else '' }}" required />
 
                 <label for="aux-data">Aux data:</label>
-                <input id="aux-data" type="text" name="aux-data" />
+                <input id="aux-data" type="text" name="aux-data" value="{{ prefill.geoentity_source.aux_data if prefill else '' }}" />
             </div>
 
             <hr class="form-divider" /> <!-- Geoentity Config Section -->
@@ -69,10 +75,10 @@
                 <div class="section-heading" style="grid-row: span 2;">Geoentity Config</div>
 
                 <label for="config_remark_info">Remark Info:</label>
-                <textarea id="config_remark_info" name="config_remark_info" rows="2">Mandatory information for GeoEntity insertion.</textarea>
+                <textarea id="config_remark_info" name="config_remark_info" rows="2">{{ prefill.geoentity_config.remark.info if prefill else 'Mandatory information for GeoEntity insertion.' }}</textarea>
 
                 <label for="config_notes">Notes (one per line):</label>
-                <textarea id="config_notes" name="config_notes" rows="3"></textarea>
+                <textarea id="config_notes" name="config_notes" rows="3">{% if prefill %}{{ prefill.geoentity_config.remark.note | join('\n') }}{% endif %}</textarea>
             </div>
 
             <hr class="form-divider" />
@@ -81,19 +87,22 @@
                 <div class="section-heading" style="grid-row: span 5;">GeoJSON File Config</div>
 
                 <label for="geojson_file">Upload GeoJSON File:</label>
-                <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" required />
+                {% if prefill and prefill.geoentity_config.geoJSON_file_config.file_path %}
+                <p>Current file: {{ prefill.geoentity_config.geoJSON_file_config.file_path }}</p>
+                {% endif %}
+                <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" {% if not prefill %}required{% endif %} />
 
                 <label for="parent_type">Parent Type:</label>
-                <input id="parent_type" type="text" name="parent_type" />
+                <input id="parent_type" type="text" name="parent_type" value="{{ prefill.geoentity_config.geoJSON_file_config.parent_type if prefill else '' }}" />
 
                 <label for="parent_geoentity_source_id">Parent Geoentity Source ID:</label>
-                <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" />
+                <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" value="{{ prefill.geoentity_config.geoJSON_file_config.parent_geoentity_source_id if prefill else '' }}" />
 
                 <label for="prefix_identifier">Prefix Identifier:</label>
-                <input id="prefix_identifier" type="text" name="prefix_identifier" />
+                <input id="prefix_identifier" type="text" name="prefix_identifier" value="{{ prefill.geoentity_config.geoJSON_file_config.prefix_identifier if prefill else '' }}" />
 
                 <label for="geojson_aux_attributes">GeoJSON Aux Attributes (comma-separated):</label>
-                <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" />
+                <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" value="{% if prefill %}{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_aux_attributes | join(',') }}{% endif %}" />
             </div>
 
             <hr class="form-divider" />
@@ -102,10 +111,10 @@
                 <div class="section-heading" style="grid-row: span 2;">GeoJSON Info Attribute</div>
 
                 <label for="geojson_info_name">Info Name:</label>
-                <input id="geojson_info_name" type="text" name="geojson_info_name" />
+                <input id="geojson_info_name" type="text" name="geojson_info_name" value="{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.name if prefill else '' }}" />
 
                 <label for="geojson_feature_id">Feature ID:</label>
-                <input id="geojson_feature_id" type="text" name="geojson_feature_id" />
+                <input id="geojson_feature_id" type="text" name="geojson_feature_id" value="{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.feature_ID if prefill else '' }}" />
             </div>
 
             <!-- Submit Button -->
