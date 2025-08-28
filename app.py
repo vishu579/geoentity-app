@@ -468,20 +468,43 @@ def config():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
+    # Connect to remote and load config on both GET and POST
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
+        sftp = ssh.open_sftp()
+
+        with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_config:
+            config_data = json.load(remote_config)
+        sftp.close()
+        ssh.close()
+    except Exception as e:
+        return f"Error loading config: {e}"
+
+    if request.method == 'GET':
+        key = request.args.get('key')
+        if key:
+            key_name = key.lower().replace(" ", "_")
+            geoentity = config_data.get("config", {}).get(key_name)
+            if geoentity:
+                # Prepare data to prefill form
+                return render_template('register.html', prefill=geoentity, key=key)
+            else:
+                return render_template('register.html', message="Geoentity key not found.")
+        else:
+            return render_template('register.html')
+
+    elif request.method == 'POST':
         try:
-            geojson_file = request.files.get('geojson_file')
-            if not geojson_file:
-                return render_template('register.html', message='No file uploaded.')
-
-            filename = geojson_file.filename
-            if not filename.endswith('.geojson'):
-                return render_template('register.html', message='Invalid file format. Only .geojson allowed.')
-
-            # Extract form fields
+            # Get submitted key and prepare key_name
             key = request.form.get("key")
-            key_name = key.lower().replace(" ", "_")  # use as JSON key
+            key_name = key.lower().replace(" ", "_")
 
+            geojson_file = request.files.get('geojson_file')
+            filename = geojson_file.filename if geojson_file else None
+
+            # Build geoentity_source dict from form
             geoentity_source = {
                 "remark": {
                     "info": request.form.get("source_remark_info", "").strip()
@@ -501,7 +524,7 @@ def register():
                     "note": [note.strip() for note in request.form.get("config_notes", "").splitlines() if note.strip()]
                 },
                 "geoJSON_file_config": {
-                    "file_path": "",  # will be updated
+                    "file_path": "",  # to update if new file uploaded
                     "parent_type": request.form.get("parent_type"),
                     "parent_geoentity_source_id": int(request.form.get("parent_geoentity_source_id") or 0),
                     "prefix_identifier": request.form.get("prefix_identifier"),
@@ -513,33 +536,35 @@ def register():
                 }
             }
 
-            # Connect to remote server
+            # Connect again for upload and update
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
             sftp = ssh.open_sftp()
 
-            # Upload GeoJSON
-            remote_dir = os.path.dirname(REMOTE_CONFIG_PATH)
-            remote_geojson_path = f"{remote_dir.rstrip('/')}/{filename}"
-            geojson_file.seek(0)
-            with sftp.open(remote_geojson_path, 'wb') as remote_file:
-                remote_file.write(geojson_file.read())
+            if geojson_file and filename and filename.endswith('.geojson'):
+                remote_dir = os.path.dirname(REMOTE_CONFIG_PATH)
+                remote_geojson_path = f"{remote_dir.rstrip('/')}/{filename}"
+                geojson_file.seek(0)
+                with sftp.open(remote_geojson_path, 'wb') as remote_file:
+                    remote_file.write(geojson_file.read())
+                geoentity_config["geoJSON_file_config"]["file_path"] = remote_geojson_path
+            else:
+                # If editing and no new file uploaded, preserve existing file path if present
+                existing = config_data.get("config", {}).get(key_name, {})
+                existing_path = existing.get("geoentity_config", {}).get("geoJSON_file_config", {}).get("file_path", "")
+                geoentity_config["geoJSON_file_config"]["file_path"] = existing_path
 
-            # Update file path in config
-            geoentity_config["geoJSON_file_config"]["file_path"] = remote_geojson_path
-
-            # Read and parse config.json
+            # Load config again (to avoid overwriting changes) — or use loaded config_data from above
             with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_config:
                 config_data = json.load(remote_config)
 
             if "config" not in config_data:
                 config_data["config"] = {}
 
-            # Append to keys_to_process list if not already present
             config_data["config"]["geoentity_keys_to_process"] = [key_name]
 
-            # Insert new geoentity block
+            # Update the specific geoentity block
             config_data["config"][key_name] = {
                 "geoentity_source": geoentity_source,
                 "geoentity_config": geoentity_config
@@ -555,9 +580,7 @@ def register():
             return redirect(url_for('config'))
 
         except Exception as e:
-            return render_template('register.html', message=f'Error: {e}')
-
-    return render_template('register.html')
+            return render_template('register.html', message=f'Error: {e}', prefill=request.form)
 
 
 @app.route('/republish', methods=['POST'])
