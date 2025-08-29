@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="static\css\style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="static\js\vue.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet" />
+
 </head>
 
 <body>
@@ -42,8 +44,9 @@
                 <h2 class="geoentity-title">
                     {{ loop.index }}. {{ value.geoentity_source.name }}
                     <div>
-                        <button onclick="window.location.href='/register?key={{ key }}'" title="Edit Geoentity">
-                            ✏️
+                        <button class="g-btn g-btn--icon" onclick="window.location.href='/register?key={{ key }}'"
+                            title="Edit Geoentity Configuration" aria-label="Edit Geoentity Configuration">
+                            <span class="material-symbols-outlined">edit</span>
                         </button>
                         <button class="generate-pyramid-btn" data-name="{{ value.geoentity_source.name }}">
                             Loading...
