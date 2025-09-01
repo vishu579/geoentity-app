@@ -52,7 +52,11 @@
                 <textarea id="source_remark_info" name="source_remark_info" rows="2">{{ prefill.geoentity_source.remark.info if prefill else '' }}</textarea>
 
                 <label for="name">Name:</label>
-                <input id="name" type="text" name="name" value="{{ prefill.geoentity_source.name if prefill else '' }}" required />
+                {% if prefill %}
+                <input id="name" type="text" name="name" value="{{ prefill.geoentity_source.name }}" readonly />
+                {% else %}
+                <input id="name" type="text" name="name" required />
+                {% endif %}
 
                 <label for="project">Project:</label>
                 <input id="project" type="text" name="project" value="{{ prefill.geoentity_source.project if prefill else '' }}" required />
