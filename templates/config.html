@@ -176,7 +176,16 @@
                     e.stopPropagation();
                     const entityKey = this.dataset.key;
                     console.log(`Republish clicked for ${entityKey}`);
+                    const btn = this;
+                    const originalText = btn.textContent;
 
+                    console.log(`Republish clicked for ${entityKey}`);
+
+                    // Disable the button and show "Running..."
+                    btn.textContent = 'Running...';
+                    btn.disabled = true;
+
+                    // Step 1: Send job trigger
                     fetch('/republish', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -184,10 +193,49 @@
                     })
                         .then(res => res.json())
                         .then(data => {
-                            alert(data.message);
-                            if (data.status === "success") {
-                                location.reload();
-                            }
+                            // if (data.status !== 'success') {
+                            //     alert(data.message || 'Failed to trigger republish');
+                            //     return;
+                            // }
+
+                            const jobId = data.job_id;
+                            alert(`Job started for ${entityKey}\nTracking Job ID: ${jobId}`);
+
+                            // Step 2: Poll for status
+                            const interval = setInterval(() => {
+                                fetch(`/status/${jobId}`)
+                                    .then(res => res.json())
+                                    .then(statusData => {
+                                        console.log(`Job ${jobId} status:`, statusData);
+
+                                        if (statusData.status === 'running') {
+                                            // Optionally update button text or UI
+                                            return;
+                                        }
+
+                                        clearInterval(interval); // stop polling
+
+                                        if (statusData.status === 'completed') {
+                                            alert(`Job completed for ${entityKey}`);
+                                            btn.textContent = originalText;
+                                            btn.disabled = false;
+                                            location.reload();
+                                        } else if (statusData.status === 'error') {
+                                            btn.textContent = 'Failed';
+                                            btn.disabled = false;
+                                            alert(`Job failed for ${entityKey}:\n${statusData.message}`);
+                                        } else {
+                                            btn.textContent = 'Unknown';
+                                            btn.disabled = false;
+                                            alert(`Job ended with unknown status for ${entityKey}`);
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error('Error checking job status:', err);
+                                        clearInterval(interval);
+                                        alert('Error checking job status.');
+                                    });
+                            }, 3000); // poll every 3 seconds
                         })
                         .catch(err => {
                             console.error('Error:', err);
@@ -220,8 +268,10 @@
                                 btn.style.display = 'inline-block';
                             }
                         } else {
-                            // No match found, hide the button
-                            btn.style.display = 'none';
+                            // No match found
+                            btn.textContent = "Source Not Available";
+                            btn.style.display = 'inline-block';
+                            btn.disabled = true;
                         }
                     });
                 })
