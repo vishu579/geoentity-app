@@ -5,12 +5,18 @@ import geopandas as gpd
 import psycopg2
 import os
 import time
-import datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import sys
 import math
 import paramiko
+import sqlite3
+import threading
+import uuid
 
 app = Flask(__name__)
+
+DB_PATH = 'job_status.db'
 
 load_dotenv()
 REMOTE_IP = os.getenv("REMOTE_IP")
@@ -167,9 +173,10 @@ def insertion(gdf, geoentity_config, geoentity):
 
         previous_parent_id=None
 
+
         # SourceInfo Loading
         source_name = geoentity_config["geoentity_source"]["name"]
-        source_publish_date_yyyymmdd = time.mktime(datetime.datetime.strptime(
+        source_publish_date_yyyymmdd = time.mktime(datetime.strptime(
             geoentity_config["geoentity_source"]["publish_date_yyyymmdd"], "%Y%m%d").timetuple())
         source_project = geoentity_config["geoentity_source"]["project"]
         source_provider = geoentity_config["geoentity_source"]["provider"]
@@ -186,6 +193,10 @@ def insertion(gdf, geoentity_config, geoentity):
         config_geojsonfile_infoattr_featureid_type = "str"
         if "feature_ID_type" in geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]:
             config_geojsonfile_infoattr_featureid_type = geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID_type"]
+
+        if "reprocess_flag" in geoentity_config["geoentity_source"] and geoentity_config["geoentity_source"]["reprocess_flag"] is False:
+            geoentity_config["geoentity_source"]["reprocess_flag"] = True
+            # config_data["config"][entity_key]["geoentity_source"] = geoentity_source
 
         if (previous_parent_id is not None) and (config_geojsonfile_parent_geoent_source_id==-1):
             config_geojsonfile_parent_geoent_source_id=previous_parent_id
@@ -434,6 +445,124 @@ def pyramid_generation(id, polygon_bool):
         yield f"Error in pyramid generation: {e}"
 
 
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS jobs (
+                job_id TEXT PRIMARY KEY,
+                entity_key TEXT NOT NULL,
+                status TEXT NOT NULL,
+                started_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                message TEXT,
+                result TEXT
+            )
+        ''')
+        conn.commit()
+
+init_db()
+
+def create_job(entity_key):
+    job_id = str(uuid.uuid4())
+    ist = ZoneInfo("Asia/Kolkata")
+    started_on = datetime.now(ist).isoformat()
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            INSERT INTO jobs (job_id, entity_key, status, started_on, message)
+            VALUES (?, ?, ?, ?, ?)
+        """, (job_id, entity_key, "pending", started_on, "Job submitted"))
+        conn.commit()
+    return job_id
+
+
+def update_job(job_id, status, message=None, result=None):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            UPDATE jobs SET status=?, message=?, result=?
+            WHERE job_id=?
+        """, (
+            status,
+            message,
+            json.dumps(result) if result else None,
+            job_id
+        ))
+        conn.commit()
+
+
+def get_job_status(job_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.execute("""
+            SELECT job_id, entity_key, status, started_on, message, result
+            FROM jobs WHERE job_id=?
+        """, (job_id,))
+        row = cursor.fetchone()
+        if row:
+            return {
+                "job_id": row[0],
+                "entity_key": row[1],
+                "status": row[2],
+                "started_on": row[3],
+                "message": row[4],
+                "result": json.loads(row[5]) if row[5] else None
+            }
+        return None
+
+
+def republish_worker(job_id, entity_key):
+    try:
+        update_job(job_id, "running", message="Started republish task")
+
+        entity_data = parse_config(REMOTE_CONFIG_PATH, entity_key)
+        if not entity_data:
+            update_job(job_id, "failed", "Key not found in config")
+            return
+
+        print(f"[DEBUG] parse_config returned for {entity_key}:")
+        print(json.dumps(entity_data, indent=4))
+
+        # Read its GeoJSON file entirely in memory
+        geojson_path = entity_data["geoentity_config"]["geoJSON_file_config"]["file_path"]
+        print(f"[DEBUG] Remote geojson_path: {geojson_path}")
+        gdf = read_data(geojson_path)  # <- now memory-based
+
+        # Debug print to console
+        print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
+
+        # insertion_success = insertion(gdf, entity_data, entity_key)
+
+        # Example update — mark reprocess_flag true in config
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
+        sftp = ssh.open_sftp()
+
+        with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_file:
+            config_data = json.load(remote_file)
+
+        if "config" in config_data and entity_key in config_data["config"]:
+            # Replace keys_to_process with only this key
+            config_data["config"]["geoentity_keys_to_process"] = [entity_key]
+
+        # Update reprocess_flag if currently False
+        geoentity_source = config_data["config"][entity_key].get("geoentity_source", {})
+        if "reprocess_flag" in geoentity_source and geoentity_source["reprocess_flag"] is False:
+            geoentity_source["reprocess_flag"] = True
+            config_data["config"][entity_key]["geoentity_source"] = geoentity_source
+
+        with sftp.open(REMOTE_CONFIG_PATH, 'w') as remote_file:
+            remote_file.write(json.dumps(config_data, indent=4))
+
+        sftp.close()
+        ssh.close()
+
+
+        update_job(job_id, "completed", message="Job completed", result={
+            "rows_inserted": len(gdf),
+            "entity": entity_key
+        })
+
+    except Exception as e:
+        update_job(job_id, "failed", message=str(e))
+
 
 @app.route('/')
 def index():
@@ -485,7 +614,7 @@ def register():
     if request.method == 'GET':
         key = request.args.get('key')
         if key:
-            key_name = key.lower().replace(" ", "_")
+            key_name = key.replace(" ", "_")
             geoentity = config_data.get("config", {}).get(key_name)
             if geoentity:
                 # Prepare data to prefill form
@@ -590,60 +719,28 @@ def republish():
         if not entity_key:
             return jsonify({"status": "error", "message": "No key provided"}), 400
 
-        # Get current entity config
-        entity_data = parse_config(REMOTE_CONFIG_PATH, entity_key)
-        if not entity_data:
-            return jsonify({"status": "error", "message": "Key not found in config"}), 404
+        job_id = create_job(entity_key)
 
-        # Debug print to console
-        print(f"[DEBUG] parse_config returned for {entity_key}:")
-        print(json.dumps(entity_data, indent=4))
+        # Run in background thread
+        thread = threading.Thread(target=republish_worker, args=(job_id, entity_key))
+        thread.start()
 
-        # Read its GeoJSON file entirely in memory
-        geojson_path = entity_data["geoentity_config"]["geoJSON_file_config"]["file_path"]
-        print(f"[DEBUG] Remote geojson_path: {geojson_path}")
-        gdf = read_data(geojson_path)  # <- now memory-based
-
-        # Debug print to console
-        print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
-
-        # insertion_success = insertion(gdf, entity_data, entity_key)
-
-        # Example update — mark reprocess_flag true in config
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
-        sftp = ssh.open_sftp()
-
-        with sftp.open(REMOTE_CONFIG_PATH, 'r') as remote_file:
-            config_data = json.load(remote_file)
-
-        if "config" in config_data and entity_key in config_data["config"]:
-            # Replace keys_to_process with only this key
-            config_data["config"]["geoentity_keys_to_process"] = [entity_key]
-
-        # Update reprocess_flag if currently False
-        geoentity_source = config_data["config"][entity_key].get("geoentity_source", {})
-        if "reprocess_flag" in geoentity_source and geoentity_source["reprocess_flag"] is False:
-            geoentity_source["reprocess_flag"] = True
-            config_data["config"][entity_key]["geoentity_source"] = geoentity_source
-
-        with sftp.open(REMOTE_CONFIG_PATH, 'w') as remote_file:
-            remote_file.write(json.dumps(config_data, indent=4))
-
-        sftp.close()
-        ssh.close()
-
-        # Also send back a short preview
         return jsonify({
-            "status": "success",
-            "message": f"Republish triggered for {entity_key}",
-            "parse_config_preview": entity_data,
-            "read_data_preview": gdf.head().to_json()
-        }), 200
+            "status": "submitted",
+            "job_id": job_id,
+            "entity_key": entity_key
+        }), 202
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/status/<job_id>', methods=['GET'])
+def check_job_status(job_id):
+    job = get_job_status(job_id)
+    if job:
+        return jsonify(job), 200
+    return jsonify({"status": "error", "message": "Job not found"}), 404
 
 
 @app.route('/generate_pyramids', methods=['POST'])
