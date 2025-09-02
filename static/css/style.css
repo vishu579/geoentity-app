@@ -630,6 +630,20 @@ a {
   box-shadow: 0 6px 12px rgba(83, 91, 242, 0.5)
 }
 
+.generate-pyramid-btn.source-not-available {
+  background-color: #af2525;
+  color: white;
+  font-weight: 400;
+  font-size: 0.9rem;
+  padding: 0.6em 1.4em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(100, 108, 255, 0.3);
+  user-select: none;
+}
+
 .g-btn {
   display: inline-flex;
   align-items: center;
@@ -686,4 +700,9 @@ a {
 .g-btn--primary:hover {
   background: #1765c1;
   border-color: #1765c1;
+}
+
+.status-text {
+  color: green;
+  margin-left: 70px;
 }
