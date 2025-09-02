@@ -132,9 +132,10 @@
                     <span id="closeModal" class="close">&times;</span>
                 </div>
                 <form id="pyramidForm">
-                    <div>
+                    <div class="geoentity-source-row">
                         <label for="geoentitySourceId">Geoentity Source ID:</label>
                         <input type="text" id="geoentitySourceId" name="geoentity_source_id" required />
+                        <span id="pyramidStatusText" class="status-text"></span> <!-- Status goes here -->
                     </div>
                     <div class="popupform">
                         <label for="is_polygon">isPolygon: </label>
@@ -168,6 +169,12 @@
                     const content = title.nextElementSibling;
                     if (content) content.classList.toggle('active');
                 });
+            });
+
+            document.querySelectorAll('.g-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                })
             });
 
             // Republish buttons
@@ -256,6 +263,7 @@
                     // Update all generate-pyramid buttons accordingly
                     document.querySelectorAll('.generate-pyramid-btn').forEach(btn => {
                         const name = btn.dataset.name;
+                        btn.classList.remove('source-not-available');
                         if (pyramidStatusMap[name]) {
                             const { id, status } = pyramidStatusMap[name];
                             btn.dataset.id = id;  // store id for later use
@@ -272,6 +280,7 @@
                             btn.textContent = "Source Not Available";
                             btn.style.display = 'inline-block';
                             btn.disabled = true;
+                            btn.classList.add('source-not-available');
                         }
                     });
                 })
@@ -368,6 +377,12 @@
                         eventSource.onmessage = function (event) {
                             logContainer.textContent += event.data + '\n';
                             logContainer.scrollTop = logContainer.scrollHeight;
+
+                            // ✅ Show "Completed" status when process ends
+                            if (event.data.toLowerCase().includes("completed")) {
+                                const statusText = document.getElementById("pyramidStatusText");
+                                statusText.textContent = "Completed ✅";
+                            }
                         };
 
                         eventSource.onerror = function () {
