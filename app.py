@@ -367,6 +367,7 @@ def insertion(gdf, geoentity_config, geoentity):
 
 def pyramid_generation(id, polygon_bool):
     try:
+        yield f"Pyramid generation has started for {id}"
         # Connect to the PostGIS database move to config on a per layer basis
         conn = psycopg2.connect(database=db, user=username, password=password, host=host, port=port)
         cur = conn.cursor()
@@ -404,23 +405,18 @@ def pyramid_generation(id, polygon_bool):
             
             insert_prefix = "INSERT INTO geoentity_pyramid_levels (geoentity_source_id,geoentity_id,level,geom) "
 
-            # print("Looping ",level)
             yield f"Looping {level}"
             if level == 0:
-                # print("Entered if",level)
                 yield f"Enetered if {level}"
 
-                # print("Ingesting ",level,tolerances[level])
                 yield f"Ingesting {level} {tolerances[level]}"
 
                 querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id, "+str(level)+",  geom FROM geoentity where geoentity_source_id="+geoentity_source_id+" " + ("and ST_IsValid(ST_Buffer(geom,0))" if isPolygon else " ")
-                # print("Query",querystr)
                 yield f"Query {querystr}"
 
                 cur.execute(querystr)
                 conn.commit()
             else:
-                # print("Entered else",level)
                 yield f"Entered else {level}"
 
                 gridsize = str(0.000001)
@@ -430,18 +426,17 @@ def pyramid_generation(id, polygon_bool):
                     gridsize = str(0.0001)
                 if(float(tolerances[level])>0.001):
                     gridsize = str(0.001)
-                # print("Ingesting ",level,tolerances[level],gridsize)
                 yield f"Ingesting {level} {tolerances[level]} {gridsize}"
 
                 querystr = insert_prefix +" SELECT geoentity_source_id, geoentity_id,"+str(level)+", "+ ("ST_MakeValid(ST_Buffer(ST_SnapToGrid(ST_SimplifyPreserveTopology(geom,"+tolerances[level]+"),0,0,"+gridsize+","+gridsize+"),0))" if isPolygon else "geom") +" FROM geoentity_pyramid_levels where geoentity_source_id="+geoentity_source_id+" and level="+str(level-1)+" AND geom IS NOT NULL AND NOT ST_IsEmpty(geom) AND ST_IsValid(geom)"
-                # print("Query",querystr)
                 yield f"Query {querystr}"
 
                 cur.execute(querystr)
                 conn.commit()
+        
+        yield f"Completed"
 
     except Exception as e:
-        # print(f"Error in pyramid generation: {e}")
         yield f"Error in pyramid generation: {e}"
 
 
