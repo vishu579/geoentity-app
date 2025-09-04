@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, Response, stream_with_context
 from dotenv import load_dotenv
 import json
+import requests
 import geopandas as gpd
 import psycopg2
 import os
@@ -193,10 +194,6 @@ def insertion(gdf, geoentity_config, geoentity):
         config_geojsonfile_infoattr_featureid_type = "str"
         if "feature_ID_type" in geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]:
             config_geojsonfile_infoattr_featureid_type = geoentity_config["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID_type"]
-
-        if "reprocess_flag" in geoentity_config["geoentity_source"] and geoentity_config["geoentity_source"]["reprocess_flag"] is False:
-            geoentity_config["geoentity_source"]["reprocess_flag"] = True
-            # config_data["config"][entity_key]["geoentity_source"] = geoentity_source
 
         if (previous_parent_id is not None) and (config_geojsonfile_parent_geoent_source_id==-1):
             config_geojsonfile_parent_geoent_source_id=previous_parent_id
@@ -502,9 +499,9 @@ def get_job_status(job_id):
         return None
 
 
-def republish_worker(job_id, entity_key):
+def republish_worker(job_id, entity_key, action):
     try:
-        update_job(job_id, "running", message="Started republish task")
+        update_job(job_id, "running", message=f"Started {action} task")
 
         entity_data = parse_config(REMOTE_CONFIG_PATH, entity_key)
         if not entity_data:
@@ -522,6 +519,13 @@ def republish_worker(job_id, entity_key):
         # Debug print to console
         print(f"[DEBUG] read_data returned GeoDataFrame with {len(gdf)} rows and {len(gdf.columns)} columns.")
 
+        # Update reprocess_flag if republish is pressed and if it is currently False
+        if action =="republish":
+            geoentity_source = config_data["config"][entity_key].get("geoentity_source", {})
+            if "reprocess_flag" in geoentity_source and geoentity_source["reprocess_flag"] is False:
+                geoentity_source["reprocess_flag"] = True
+                config_data["config"][entity_key]["geoentity_source"] = geoentity_source
+
         # insertion_success = insertion(gdf, entity_data, entity_key)
 
         # Example update — mark reprocess_flag true in config
@@ -536,12 +540,6 @@ def republish_worker(job_id, entity_key):
         if "config" in config_data and entity_key in config_data["config"]:
             # Replace keys_to_process with only this key
             config_data["config"]["geoentity_keys_to_process"] = [entity_key]
-
-        # Update reprocess_flag if currently False
-        geoentity_source = config_data["config"][entity_key].get("geoentity_source", {})
-        if "reprocess_flag" in geoentity_source and geoentity_source["reprocess_flag"] is False:
-            geoentity_source["reprocess_flag"] = True
-            config_data["config"][entity_key]["geoentity_source"] = geoentity_source
 
         with sftp.open(REMOTE_CONFIG_PATH, 'w') as remote_file:
             remote_file.write(json.dumps(config_data, indent=4))
@@ -606,18 +604,47 @@ def register():
     except Exception as e:
         return f"Error loading config: {e}"
 
+    geoentity_sources_sorted = []  # initialize upfront
+    try:
+        response = requests.get("https://vedas.sac.gov.in/geoentity-services/api/geoentity-sources/")
+        response.raise_for_status()
+        data = response.json()
+        geoentity_sources_sorted = sorted(data.get("data", []), key=lambda x: x["id"])
+        print(f"Fetched {len(geoentity_sources_sorted)} geoentity sources")
+    except Exception as e:
+        geoentity_sources_sorted = []
+        print(f"Failed to fetch geoentity sources: {e}")
+
     if request.method == 'GET':
         key = request.args.get('key')
         if key:
             key_name = key.replace(" ", "_")
             geoentity = config_data.get("config", {}).get(key_name)
+
+            geojson_columns = []
+
+            if geoentity:
+                # Try to read GeoJSON columns if file_path exists
+                try:
+                    file_path = geoentity.get("geoentity_config", {}) \
+                                        .get("geoJSON_file_config", {}) \
+                                        .get("file_path", "")
+                    if file_path:
+                        gdf = read_data(file_path)
+                        geojson_columns = [col for col in gdf.columns if col != "geometry"]
+
+                except Exception as e:
+                    print(f"Error reading GeoJSON file for columns: {e}")
+                    geojson_columns = []
+
+
             if geoentity:
                 # Prepare data to prefill form
-                return render_template('register.html', prefill=geoentity, key=key)
+                return render_template('register.html', prefill=geoentity, key=key, parent_geoentity_sources=geoentity_sources_sorted, geojson_columns=geojson_columns)
             else:
-                return render_template('register.html', message="Geoentity key not found.")
+                return render_template('register.html', message="Geoentity key not found.", parent_geoentity_sources=geoentity_sources_sorted, geojson_columns=[])
         else:
-            return render_template('register.html')
+            return render_template('register.html', parent_geoentity_sources=geoentity_sources_sorted, geojson_columns=[])
 
     elif request.method == 'POST':
         try:
@@ -652,7 +679,7 @@ def register():
                     "parent_type": request.form.get("parent_type"),
                     "parent_geoentity_source_id": int(request.form.get("parent_geoentity_source_id") or 0),
                     "prefix_identifier": request.form.get("prefix_identifier"),
-                    "geoJSON_aux_attributes": [x.strip() for x in request.form.get("geojson_aux_attributes", "").split(",") if x.strip()],
+                    "geoJSON_aux_attributes": request.form.getlist("geojson_aux_attributes"),
                     "geoJSON_info_attribute": {
                         "name": request.form.get("geojson_info_name"),
                         "feature_ID": request.form.get("geojson_feature_id")
@@ -711,19 +738,21 @@ def register():
 def republish():
     try:
         entity_key = request.form.get("key")
+        action = request.form.get("action", "publish")  # Default to "publish
         if not entity_key:
             return jsonify({"status": "error", "message": "No key provided"}), 400
 
         job_id = create_job(entity_key)
 
         # Run in background thread
-        thread = threading.Thread(target=republish_worker, args=(job_id, entity_key))
+        thread = threading.Thread(target=republish_worker, args=(job_id, entity_key, action))
         thread.start()
 
         return jsonify({
             "status": "submitted",
             "job_id": job_id,
-            "entity_key": entity_key
+            "entity_key": entity_key,
+            "action": action
         }), 202
 
     except Exception as e:

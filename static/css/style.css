@@ -40,6 +40,18 @@ input {
   cursor: pointer;
 }
 
+select {
+  padding: 10px 16px;
+  border: 2px solid #04040469;
+  border-radius: 30px;
+  background-color: #fff;
+  font-size: 15px;
+  margin-left: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
 
 .main-header {
   display: flex;
@@ -474,9 +486,17 @@ tbody tr:hover {
 .form-section input,
 textarea {
   grid-column: 3 / 4;
-  width: 100%;
+  width: auto;
   box-sizing: border-box;
   margin-top: 4px;
+}
+
+.hidden-section {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .form-divider {

@@ -77,50 +77,104 @@
             <hr class="form-divider" /> <!-- Geoentity Config Section -->
             <div class="form-section">
                 <div class="section-heading" style="grid-row: span 2;">Geoentity Config</div>
-
+            
                 <label for="config_remark_info">Remark Info:</label>
-                <textarea id="config_remark_info" name="config_remark_info" rows="2">{{ prefill.geoentity_config.remark.info if prefill else 'Mandatory information for GeoEntity insertion.' }}</textarea>
-
+                <textarea id="config_remark_info" name="config_remark_info"
+                    rows="2">{{ prefill.geoentity_config.remark.info if prefill else 'Mandatory information for GeoEntity insertion.' }}</textarea>
+            
                 <label for="config_notes">Notes (one per line):</label>
-                <textarea id="config_notes" name="config_notes" rows="3">{% if prefill %}{{ prefill.geoentity_config.remark.note | join('\n') }}{% endif %}</textarea>
+                <textarea id="config_notes" name="config_notes"
+                    rows="3">{% if prefill and prefill.geoentity_config.remark.note %}
+            {{ prefill.geoentity_config.remark.note | join('\n') }}
+            {% endif %}Parent_Type ('File' or 'DB'),Parent_GeoEntity_Source_ID' (For Spatial Join) and 'Prefix_Identifier' required to be confirmed from DB Administrator/Author/Internal_Reviewer.
+In case of 'File' ParentName & ParentID should be provided from 'File' and incase of 'DB' ParentName & ParentID will be fetched from DB.</textarea>
             </div>
 
             <hr class="form-divider" />
             <!-- GeoJSON File Config Section -->
             <div class="form-section">
-                <div class="section-heading" style="grid-row: span 5;">GeoJSON File Config</div>
-
+                <div class="section-heading" style="grid-row: span 1;">GeoJSON File Upload</div>
                 <label for="geojson_file">Upload GeoJSON File:</label>
                 {% if prefill and prefill.geoentity_config.geoJSON_file_config.file_path %}
                 <p>Current file: {{ prefill.geoentity_config.geoJSON_file_config.file_path }}</p>
                 {% endif %}
                 <input id="geojson_file" type="file" name="geojson_file" accept=".geojson" {% if not prefill %}required{% endif %} />
-
-                <label for="parent_type">Parent Type:</label>
-                <input id="parent_type" type="text" name="parent_type" value="{{ prefill.geoentity_config.geoJSON_file_config.parent_type if prefill else '' }}" />
-
-                <label for="parent_geoentity_source_id">Parent Geoentity Source ID:</label>
-                <input id="parent_geoentity_source_id" type="text" name="parent_geoentity_source_id" value="{{ prefill.geoentity_config.geoJSON_file_config.parent_geoentity_source_id if prefill else '' }}" />
-
-                <label for="prefix_identifier">Prefix Identifier:</label>
-                <input id="prefix_identifier" type="text" name="prefix_identifier" value="{{ prefill.geoentity_config.geoJSON_file_config.prefix_identifier if prefill else '' }}" />
-
-                <label for="geojson_aux_attributes">GeoJSON Aux Attributes (comma-separated):</label>
-                <input id="geojson_aux_attributes" type="text" name="geojson_aux_attributes" value="{% if prefill %}{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_aux_attributes | join(',') }}{% endif %}" />
+                <input type="hidden" id="existing_file_path" value="{{ prefill.geoentity_config.geoJSON_file_config.file_path if prefill else '' }}">
             </div>
 
             <hr class="form-divider" />
+
+            <!-- Wrap this section to hide/show -->
+            <div class="form-section hidden-section" id="geojson-file-config-section">
+                <div class="section-heading" style="grid-row: span 5;">GeoJSON File Config</div>
+
+                <label for="parent_type">Parent Type:</label>
+                <select id="parent_type" name="parent_type" required>
+                    <option value="DB" {% if prefill and prefill.geoentity_config.geoJSON_file_config.parent_type=="DB" %}selected{% endif
+                        %}>DB</option>
+                    <option value="File" {% if prefill and prefill.geoentity_config.geoJSON_file_config.parent_type=="File" %}selected{% endif
+                        %}>File</option>
+                </select>
+                <label for="parent_geoentity_source_id">Parent Geoentity Source ID:</label>
+                <select id="parent_geoentity_source_id" name="parent_geoentity_source_id" required>
+                    <option value="">-- Select an ID --</option>
+                    <option value="-1" {% if prefill and prefill.geoentity_config.geoJSON_file_config.parent_geoentity_source_id|string == "-1" %}selected{% endif %}>-1</option>
+                    <option value="0" {% if prefill and prefill.geoentity_config.geoJSON_file_config.parent_geoentity_source_id|string == "0" %}selected{% endif %}>0</option>
+                    {% for source in parent_geoentity_sources %}
+                    <option value="{{ source.id }}" {% if prefill and prefill.geoentity_config.geoJSON_file_config.parent_geoentity_source_id|string == source.id|string %} selected {% endif %}>
+                        {{ source.id }} - {{ source.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <label for="prefix_identifier">Prefix Identifier:</label>
+                <input id="prefix_identifier" type="text" name="prefix_identifier"
+                    value="{{ prefill.geoentity_config.geoJSON_file_config.prefix_identifier if prefill else '' }}" />
+
+                <label for="geojson_aux_attributes">GeoJSON Aux Attributes (comma-separated):</label>
+                <div id="geojson-aux-checkboxes">
+                    {% if geojson_columns %}
+                    {% for col in geojson_columns %}
+                    <label>
+                        <input type="checkbox" name="geojson_aux_attributes" value="{{ col }}" {% if prefill and col in
+                            prefill.geoentity_config.geoJSON_file_config.geoJSON_aux_attributes %}checked{% endif %} />
+                        {{ col }}
+                    </label><br />
+                    {% endfor %}
+                    {% else %}
+                    <p>No GeoJSON columns available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="form-divider" />
+
+
             <!-- GeoJSON Info Attribute Section -->
-            <div class="form-section">
+            <div class="form-section hidden-section" id="geojson-info-section">
                 <div class="section-heading" style="grid-row: span 2;">GeoJSON Info Attribute</div>
 
                 <label for="geojson_info_name">Info Name:</label>
-                <input id="geojson_info_name" type="text" name="geojson_info_name" value="{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.name if prefill else '' }}" />
+                <select id="geojson_info_name" name="geojson_info_name">
+                    <option value="">-- Select Info Name --</option>
+                    {% for col in geojson_columns %}
+                    <option value="{{ col }}" {% if prefill and
+                        prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.name==col %} selected {% endif %}>
+                        {{ col }}
+                    </option>
+                    {% endfor %}
+                </select>
 
                 <label for="geojson_feature_id">Feature ID:</label>
-                <input id="geojson_feature_id" type="text" name="geojson_feature_id" value="{{ prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.feature_ID if prefill else '' }}" />
+                <select id="geojson_feature_id" name="geojson_feature_id">
+                    <option value="">-- Select Feature ID --</option>
+                    {% for col in geojson_columns %}
+                    <option value="{{ col }}" {% if prefill and
+                        prefill.geoentity_config.geoJSON_file_config.geoJSON_info_attribute.feature_ID==col %} selected {% endif %}>
+                        {{ col }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-
             <!-- Submit Button -->
             <div class="form-button-container">
                 <button type="submit" class="button">Save</button>
@@ -135,6 +189,90 @@
         © 2025 VEDAS, SAC, ISRO, Government of India | All Rights Reserved
     </footer>
 
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+                const geojsonInput = document.getElementById("geojson_file");
+                const configSection = document.getElementById("geojson-file-config-section");
+                const infoSection = document.getElementById("geojson-info-section");
+                const existingFilePath = document.getElementById("existing_file_path").value;
+
+                const auxCheckboxContainer = document.getElementById("geojson-aux-checkboxes");
+
+                function toggleGeoJSONSections() {
+                    const shouldShow = geojsonInput.files.length > 0 || existingFilePath;
+                    configSection.classList.toggle("hidden-section", !shouldShow);
+                    infoSection.classList.toggle("hidden-section", !shouldShow);
+                }
+
+                // Initial check on load
+                toggleGeoJSONSections();
+
+                // Function to generate checkboxes dynamically
+                function generateCheckboxesAndDropdowns(properties) {
+                auxCheckboxContainer.innerHTML = ""; // Clear existing
+
+                const infoSelect = document.getElementById("geojson_info_name");
+                const featureIdSelect = document.getElementById("geojson_feature_id");
+
+                // Clear dropdowns
+                infoSelect.innerHTML = '<option value="">-- Select Info Name --</option>';
+                featureIdSelect.innerHTML = '<option value="">-- Select Feature ID --</option>';
+
+                if (!properties.length) {
+                    auxCheckboxContainer.innerHTML = "<p>No GeoJSON properties found.</p>";
+                    return;
+                }
+
+                properties.forEach(prop => {
+                    // Create checkbox
+                    const label = document.createElement("label");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.name = "geojson_aux_attributes";
+                    checkbox.value = prop;
+                    label.appendChild(checkbox);
+                    label.append(" " + prop);
+                    auxCheckboxContainer.appendChild(label);
+                    auxCheckboxContainer.appendChild(document.createElement("br"));
+
+                    // Add to dropdowns
+                    const option1 = document.createElement("option");
+                    option1.value = prop;
+                    option1.text = prop;
+                    infoSelect.appendChild(option1);
+
+                    const option2 = document.createElement("option");
+                    option2.value = prop;
+                    option2.text = prop;
+                    featureIdSelect.appendChild(option2);
+                });
+            }
+
+                // Parse GeoJSON file client-side on new upload
+                geojsonInput.addEventListener("change", function () {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        try {
+                            const geojson = JSON.parse(e.target.result);
+                            if (geojson.features && geojson.features.length > 0) {
+                                // Extract keys of properties from the first feature
+                                const properties = Object.keys(geojson.features[0].properties);
+                                generateCheckboxesAndDropdowns(properties);
+                            } else {
+                                auxCheckboxContainer.innerHTML = "<p>No features or properties found in GeoJSON.</p>";
+                            }
+                        } catch (err) {
+                            auxCheckboxContainer.innerHTML = "<p>Invalid GeoJSON file.</p>";
+                        }
+                    };
+                    reader.readAsText(file);
+                    toggleGeoJSONSections();
+                });
+            });
+    </script>
     <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </body>
 

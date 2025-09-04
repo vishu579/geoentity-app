@@ -52,11 +52,9 @@
                             Loading...
                         </button>
 
-                        {% if value.geoentity_source.reprocess_flag %}
-                        <button class="republish-btn" data-key="{{ key }}">Republish</button>
-                        {% else %}
-                        <button class="republish-btn" data-key="{{ key }}">Publish</button>
-                        {% endif %}
+                        <button class="republish-btn" data-key="{{ key }}" data-name="{{ value.geoentity_source.name }}" data-action="publish">
+                            Checking...
+                        </button>
                     </div>
                 </h2>
 
@@ -177,11 +175,42 @@
                 })
             });
 
+            // === Fetch published geoentity sources to determine Publish/Republish buttons ===
+            fetch('https://vedas.sac.gov.in/geoentity-services/api/geoentity-sources/')
+                .then(res => res.json())
+                .then(apiData => {
+                    const publishedNames = new Set(apiData.data.map(item => item.name)); // 🔑 Use apiData.data!
+
+                    document.querySelectorAll('.republish-btn').forEach(btn => {
+                        const name = btn.dataset.name;
+
+                        if (publishedNames.has(name)) {
+                            btn.textContent = 'Republish';
+                            btn.dataset.action = 'republish';
+                        } else {
+                            btn.textContent = 'Publish';
+                            btn.dataset.action = 'publish';
+                        }
+
+                        btn.disabled = false;
+                    });
+                })
+                .catch(err => {
+                    console.error('Error fetching geoentity source names:', err);
+                    document.querySelectorAll('.republish-btn').forEach(btn => {
+                        btn.textContent = 'Unavailable';
+                        btn.disabled = true;
+                    });
+                });
+
+
             // Republish buttons
             document.querySelectorAll('.republish-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     const entityKey = this.dataset.key;
+                    const action = this.dataset.action || 'publish';
+
                     console.log(`Republish clicked for ${entityKey}`);
                     const btn = this;
                     const originalText = btn.textContent;
@@ -196,7 +225,7 @@
                     fetch('/republish', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `key=${encodeURIComponent(entityKey)}`
+                        body: `key=${encodeURIComponent(entityKey)}&action=${encodeURIComponent(action)}`
                     })
                         .then(res => res.json())
                         .then(data => {
