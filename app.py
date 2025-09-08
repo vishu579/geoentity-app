@@ -172,13 +172,15 @@ def validate_geojson(entity_key):
     geojson_path = entity_data["geoentity_config"]["geoJSON_file_config"]["file_path"]
     gdf = read_data(geojson_path)
 
-    if "geoentity_source_id" not in gdf.columns:
-        return False, "Missing 'geoentity_source_id' column"
+    geojson_feature_id = entity_data["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID"]
 
-    duplicates = gdf[gdf.duplicated(subset='geoentity_source_id', keep=False)]
+    if "geoentity_feature_id" not in gdf.columns:
+        return False, "Missing 'geoentity_feature_id' column"
+
+    duplicates = gdf[gdf.duplicated(subset='geoentity_feature_id', keep=False)]
     if not duplicates.empty:
-        duplicate_ids = duplicates['geoentity_source_id'].tolist()
-        return False, f"Duplicate 'geoentity_source_id' values found: {duplicate_ids}"
+        duplicate_ids = duplicates['geoentity_feature_id'].tolist()
+        return False, f"Duplicate 'geoentity_feature_id' values found: {duplicate_ids}"
 
     return True, None
 
