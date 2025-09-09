@@ -52,7 +52,8 @@
                             Loading...
                         </button>
 
-                        <button class="republish-btn" data-key="{{ key }}" data-name="{{ value.geoentity_source.name }}" data-action="publish">
+                        <button class="republish-btn" data-key="{{ key }}" data-name="{{ value.geoentity_source.name }}"
+                            data-action="publish">
                             Checking...
                         </button>
                     </div>
@@ -227,14 +228,27 @@
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: `key=${encodeURIComponent(entityKey)}&action=${encodeURIComponent(action)}`
                     })
-                        .then(res => res.json())
-                        .then(data => {
+                        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+                        .then(({ status, body }) => {
+                            if (status !== 202) {
+                                // If the backend returned an error, show alert and reset button
+                                if (body.message && body.message.toLowerCase().includes('duplicate')) {
+                                    alert('Duplicate values found in geojson, Can not publish!');
+                                } else {
+                                    alert(body.message || 'Failed to trigger republish');
+                                }
+                                btn.textContent = originalText;
+                                btn.disabled = false;
+                                return;
+                            }
+
+
                             // if (data.status !== 'success') {
                             //     alert(data.message || 'Failed to trigger republish');
                             //     return;
                             // }
 
-                            const jobId = data.job_id;
+                            const jobId = body.job_id;
                             alert(`Job started for ${entityKey}\nTracking Job ID: ${jobId}`);
 
                             // Step 2: Poll for status
