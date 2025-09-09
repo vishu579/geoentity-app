@@ -172,14 +172,15 @@ def validate_geojson(entity_key):
     geojson_path = entity_data["geoentity_config"]["geoJSON_file_config"]["file_path"]
     gdf = read_data(geojson_path)
 
-    geojson_feature_id = entity_data["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID"]
+    geoentity_feature_id = entity_data["geoentity_config"]["geoJSON_file_config"]["geoJSON_info_attribute"]["feature_ID"]
+    print(f"The feature id is - {geoentity_feature_id}")
+    # if "geoentity_feature_id" not in gdf.columns:
+    #     return False, f"Missing {geoentity_feature_id} column"
 
-    if "geoentity_feature_id" not in gdf.columns:
-        return False, "Missing 'geoentity_feature_id' column"
-
-    duplicates = gdf[gdf.duplicated(subset='geoentity_feature_id', keep=False)]
+    duplicates = gdf[gdf.duplicated(subset=geoentity_feature_id, keep=False)]
     if not duplicates.empty:
-        duplicate_ids = duplicates['geoentity_feature_id'].tolist()
+        duplicate_ids = duplicates[geoentity_feature_id].tolist()
+        print(f"Duplicate values {duplicate_ids}")
         return False, f"Duplicate 'geoentity_feature_id' values found: {duplicate_ids}"
 
     return True, None
@@ -550,7 +551,8 @@ def republish_worker(job_id, entity_key, action):
 
         # Update reprocess_flag if republish is pressed and if it is currently False
         print("I am in republish_worker", action)
-        # Example update — mark reprocess_flag true in config
+
+
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
@@ -574,7 +576,9 @@ def republish_worker(job_id, entity_key, action):
         with sftp.open(REMOTE_CONFIG_PATH, 'w') as remote_file:
             remote_file.write(json.dumps(config_data, indent=4))
 
-        insertion_success = insertion(gdf, entity_data, entity_key)
+        entity_data_final = parse_config(REMOTE_CONFIG_PATH, entity_key)
+
+        insertion_success = insertion(gdf, entity_data_final, entity_key)
 
         sftp.close()
         ssh.close()
