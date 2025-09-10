@@ -269,6 +269,7 @@ def insertion(gdf, geoentity_config, geoentity):
 
             if "duplicate" in e.pgerror:
                 __printMsg('Error', "=====(Phase1) Already Source is existing for "+geoentity+" ======")
+                print("flage issssssssssssssssss",geoentity_config["geoentity_source"]["reprocess_flag"])
                 if geoentity_config["geoentity_source"]["reprocess_flag"]:
                     source_id_query="select id from "+geoentity_source_table+" where name='"+source_name+"' and publish_date="+str(source_publish_date_yyyymmdd)+" and project='"+source_project+"' and provider='"+source_provider+"' and category='"+source_category+"'"
                     cur.execute(source_id_query)
@@ -551,8 +552,7 @@ def republish_worker(job_id, entity_key, action):
 
         # Update reprocess_flag if republish is pressed and if it is currently False
         print("I am in republish_worker", action)
-
-
+        # Example update — mark reprocess_flag true in config
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS)
